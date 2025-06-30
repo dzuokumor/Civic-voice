@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For copying to clipboard
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const CivicVoiceApp());
 }
 
-// Define common colors based on the Figma design
-const Color primaryColor = Color(0xFF673AB7); // A shade of purple
-const Color accentColor = Color(0xFF9C27B0); // Another shade of purple for gradients
-const Color backgroundColor = Color(0xFFE0F7FA); // Light blue background
+const Color primaryColor = Color(0xFF673AB7);
+const Color accentColor = Color(0xFF9C27B0);
+const Color backgroundColor = Color(0xFFF5F5F5);
 const Color cardBackgroundColor = Colors.white;
-const Color successColor = Color(0xFF4CAF50); // Green for verify/success
-const Color errorColor = Color(0xFFF44336); // Red for reject/error
-const Color warningColor = Color(0xFFFFC107); // Amber for 'Pending'
+const Color successColor = Color(0xFF4CAF50);
+const Color errorColor = Color(0xFFF44336);
+const Color warningColor = Color(0xFFFFC107);
+const Color textColor = Color(0xFF333333);
+const Color secondaryTextColor = Color(0xFF666666);
 
 class CivicVoiceApp extends StatelessWidget {
   const CivicVoiceApp({super.key});
@@ -24,39 +25,43 @@ class CivicVoiceApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         scaffoldBackgroundColor: backgroundColor,
-        fontFamily: 'Inter', // Assuming 'Inter' as a modern sans-serif font
+        fontFamily: 'Inter',
         appBarTheme: const AppBarTheme(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
+          centerTitle: true,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: primaryColor,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(12),
             ),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: Colors.white,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         cardTheme: CardThemeData(
-          elevation: 4,
+          elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(16),
           ),
           color: cardBackgroundColor,
-          margin: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.all(16),
         ),
       ),
       initialRoute: '/',
@@ -64,7 +69,7 @@ class CivicVoiceApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/anonymousReportForm': (context) => const AnonymousReportFormScreen(),
-        '/submissionConfirmation': (context) => const SubmissionConfirmationScreen(referenceCode: 'REF-2025-001234'), // Placeholder
+        '/submissionConfirmation': (context) => const SubmissionConfirmationScreen(referenceCode: 'REF-2025-001234'),
         '/trackReportStatus': (context) => const TrackReportStatusScreen(),
         '/moderatorLogin': (context) => const ModeratorLoginScreen(),
         '/moderatorDashboard': (context) => const ModeratorDashboardScreen(),
@@ -77,7 +82,76 @@ class CivicVoiceApp extends StatelessWidget {
   }
 }
 
-// 1. Splash Screen
+
+class MainNavigation extends StatelessWidget {
+  final Widget child;
+  final bool showBottomNav;
+  final int currentIndex;
+
+  const MainNavigation({
+    super.key,
+    required this.child,
+    this.showBottomNav = true,
+    this.currentIndex = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: showBottomNav ? BottomNavigationBar(
+        currentIndex: currentIndex,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: secondaryTextColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box),
+            label: 'Report',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.track_changes),
+            label: 'Track',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.public),
+            label: 'Public',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamedAndRemoveUntil(context, '/onboarding', (route) => false);
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/anonymousReportForm');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/trackReportStatus');
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/publicOpenDashboard');
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/settings');
+              break;
+          }
+        },
+      ) : null,
+    );
+  }
+}
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -93,18 +167,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this,
       duration: const Duration(seconds: 2),
+      vsync: this,
     );
     _animation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInCirc,
+      curve: Curves.easeInOut,
     );
-
     _controller.forward();
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        // Navigate to onboarding after animation
         Navigator.of(context).pushReplacementNamed('/onboarding');
       }
     });
@@ -122,7 +194,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [primaryColor, accentColor], // Gradient from Figma
+            colors: [primaryColor, accentColor],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -137,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.gavel, // Using a hammer/gavel icon as a placeholder for "Civic Voice" logo
+                Icons.gavel,
                 color: primaryColor,
                 size: 80,
               ),
@@ -149,57 +221,215 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 }
 
-// 2. Onboarding Introduction
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('2. Onboarding Introduction'),
-        backgroundColor: Colors.transparent, // Transparent AppBar to match Figma
-        elevation: 0,
-        foregroundColor: Colors.black, // Dark text for AppBar title
-      ),
-      body: Center(
+    return MainNavigation(
+      currentIndex: 0,
+      child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+            Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      size: 50,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    '100% Anonymous',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Report governance issues safely without revealing your identity. Your privacy is our priority.',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: secondaryTextColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/anonymousReportForm');
+                    },
+                    child: const Text('Get Started'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        ),
+      ),
+    ));
+  }
+}
+
+class AnonymousReportFormScreen extends StatefulWidget {
+  const AnonymousReportFormScreen({super.key});
+
+  @override
+  State<AnonymousReportFormScreen> createState() => _AnonymousReportFormScreenState();
+}
+
+class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  String? _selectedCategory;
+  final List<String> _categories = ['Corruption', 'Mismanagement', 'Abuse of Power', 'Other'];
+  String _location = 'Tap to select location';
+
+  void _submitReport() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.of(context).pushNamed(
+        '/submissionConfirmation',
+        arguments: 'REF-${DateTime.now().year}-${_titleController.text.hashCode.abs()}',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MainNavigation(
+      currentIndex: 1,
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(32.0),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.lock_rounded, // Lock icon
-                        size: 80,
-                        color: warningColor, // Yellowish color for the lock
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.description,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Submit Report',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        '100% Anonymous',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Report Title',
+                          hintText: 'Brief title of the issue',
+                          prefixIcon: Icon(Icons.title),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const Divider(height: 40, thickness: 2, color: Colors.grey),
-                      Text(
-                        'Report governance issues safely without revealing your identity. Your privacy is our priority.',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 40),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamed('/anonymousReportForm');
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
                         },
-                        child: const Text('Next'),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        hint: const Text('Select category'),
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          prefixIcon: Icon(Icons.category),
+                        ),
+                        items: _categories.map((String category) {
+                          return DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCategory = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select a category';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _location = 'Kigali City';
+                          });
+                        },
+                        child: TextFormField(
+                          enabled: false,
+                          decoration: InputDecoration(
+                            labelText: 'Location',
+                            hintText: _location,
+                            prefixIcon: const Icon(Icons.location_on),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _descriptionController,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          labelText: 'Description (Optional)',
+                          hintText: 'Provide more details about the issue...',
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _submitReport,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                        ),
+                        child: const Text('Submit Anonymously'),
                       ),
                     ],
                   ),
@@ -213,290 +443,118 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
-// 3. Anonymous Report Form
-class AnonymousReportFormScreen extends StatefulWidget {
-  const AnonymousReportFormScreen({super.key});
-
-  @override
-  State<AnonymousReportFormScreen> createState() => _AnonymousReportFormScreenState();
-}
-
-class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  String? _selectedCategory;
-  final List<String> _categories = ['Corruption', 'Mismanagement', 'Abuse of Power', 'Other'];
-  String _location = 'Tap to select location'; // Placeholder for location
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  void _submitReport() {
-    // Basic validation
-    if (_titleController.text.isEmpty || _selectedCategory == null || _location == 'Tap to select location') {
-      _showMessageBox(
-        context,
-        'Validation Error',
-        'Please fill in all required fields (Title, Category, Location).',
-      );
-      return;
-    }
-    // In a real app, send data to backend and get a reference code
-    // For now, navigate to confirmation screen with a dummy code
-    Navigator.of(context).pushNamed(
-      '/submissionConfirmation',
-      arguments: 'REF-2025-001234', // Dummy reference code
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('3. Anonymous Report Form'),
-        backgroundColor: Colors.transparent, // Transparent AppBar to match Figma
-        elevation: 0,
-        foregroundColor: Colors.black, // Dark text for AppBar title
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.description, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Submit Report',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Report Title',
-                      hintText: 'Brief title of the issue',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    hint: const Text('Select category...'),
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                    ),
-                    items: _categories.map((String category) {
-                      return DropdownMenuItem<String>(
-                        value: category,
-                        child: Text(category),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCategory = newValue;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  // Location field - simplified as text for now
-                  GestureDetector(
-                    onTap: () {
-                      // Implement map selection logic here
-                      _showMessageBox(context, 'Location', 'Map selection not implemented yet.');
-                      setState(() {
-                        _location = 'Kigali City'; // Dummy location after selection
-                      });
-                    },
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'Location',
-                        prefixIcon: const Icon(Icons.location_on),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                      ),
-                      child: Text(
-                        _location,
-                        style: TextStyle(
-                          color: _location == 'Tap to select location' ? Colors.grey[700] : Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _descriptionController,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Description (Optional)',
-                      hintText: 'Provide more details about the issue...',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Optional attachment (placeholder)
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      _showMessageBox(context, 'Attachment', 'File attachment not implemented yet.');
-                    },
-                    icon: const Icon(Icons.attach_file),
-                    label: const Text('Add Optional Attachment'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200],
-                      foregroundColor: primaryColor,
-                      elevation: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: _submitReport,
-                    child: const Text('Submit Anonymously'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 4. Submission Confirmation
 class SubmissionConfirmationScreen extends StatelessWidget {
   final String referenceCode;
   const SubmissionConfirmationScreen({super.key, required this.referenceCode});
 
   void _copyToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: referenceCode));
-    _showMessageBox(context, 'Copied!', 'Reference code copied to clipboard.');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reference code copied to clipboard')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('4. Submission Confirmation'),
-        backgroundColor: Colors.transparent, // Transparent AppBar to match Figma
-        elevation: 0,
-        foregroundColor: Colors.black, // Dark text for AppBar title
-      ),
-      body: Center(
+    return MainNavigation(
+      showBottomNav: false,
+      child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    size: 80,
-                    color: successColor,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Report Submitted!',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  Text(
-                    'Your report has been submitted anonymously',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Reference Code',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () => _copyToClipboard(context),
-                          child: Text(
-                            referenceCode,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Text(
-                          'Tap to copy',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _copyToClipboard(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300], // Lighter button for copy
-                            foregroundColor: primaryColor,
-                          ),
-                          child: const Text('Copy Code'),
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: successColor.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_circle,
+                          size: 50,
+                          color: successColor,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).popUntil((route) => route.isFirst); // Go back to home/splash
-                          },
-                          child: const Text('Return Home'),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Report Submitted!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(height: 1),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Your report has been submitted anonymously',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Reference Code',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => _copyToClipboard(context),
+                              child: Text(
+                                referenceCode,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap to copy',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => _copyToClipboard(context),
+                              child: const Text('Copy Code'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).popUntil((route) => route.isFirst);
+                              },
+                              child: const Text('Return Home'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  // Language selection placeholder
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      'English  French', // Placeholder for language selection
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -504,7 +562,6 @@ class SubmissionConfirmationScreen extends StatelessWidget {
   }
 }
 
-// 5. Track Report Status
 class TrackReportStatusScreen extends StatefulWidget {
   const TrackReportStatusScreen({super.key});
 
@@ -519,132 +576,128 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
 
   void _checkStatus() {
     if (_referenceCodeController.text.isEmpty) {
-      _showMessageBox(context, 'Input Required', 'Please enter a reference code.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a reference code')),
+      );
       return;
     }
-    // Simulate fetching status from a backend
     setState(() {
-      _currentStatus = 'Under Review'; // Example status
-      _lastUpdated = '1 day ago'; // Example update time
+      _currentStatus = 'Under Review';
+      _lastUpdated = DateTime.now().toString();
     });
-    _showMessageBox(context, 'Status Checked', 'Report status updated.');
-  }
-
-  @override
-  void dispose() {
-    _referenceCodeController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('5. Track Report Status'),
-        backgroundColor: Colors.transparent, // Transparent AppBar to match Figma
-        elevation: 0,
-        foregroundColor: Colors.black, // Dark text for AppBar title
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.track_changes, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Track Report',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  TextFormField(
-                    controller: _referenceCodeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Reference Code',
-                      hintText: 'Enter your reference code',
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _checkStatus,
-                    child: const Text('Check Status'),
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return MainNavigation(
+      currentIndex: 2,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          'Current Status:',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.grey[700],
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.track_changes,
+                            color: primaryColor,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              _currentStatus,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: warningColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _currentStatus == 'Under Review' ? 'Under Review' : 'N/A',
-                                style: TextStyle(
-                                  color: warningColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
+                        const SizedBox(width: 16),
                         Text(
-                          'Submitted: 2 days ago', // Hardcoded as per Figma
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
-                        ),
-                        Text(
-                          'Last Updated: $_lastUpdated',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+                          'Track Report',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _referenceCodeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Reference Code',
+                        hintText: 'Enter your reference code',
+                        prefixIcon: Icon(Icons.code),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _checkStatus,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text('Check Status'),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Report Status',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Text(
+                                'Status:',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              const Spacer(),
+                              Chip(
+                                backgroundColor: warningColor.withOpacity(0.1),
+                                label: Text(
+                                  _currentStatus,
+                                  style: TextStyle(color: warningColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Submitted: 2 days ago',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Last Updated: $_lastUpdated',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-// 6. Moderator Login
 class ModeratorLoginScreen extends StatefulWidget {
   const ModeratorLoginScreen({super.key});
 
@@ -653,98 +706,119 @@ class ModeratorLoginScreen extends StatefulWidget {
 }
 
 class _ModeratorLoginScreenState extends State<ModeratorLoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _enable2FA = false;
+  bool _rememberMe = false;
 
-  void _loginSecurely() {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showMessageBox(context, 'Login Error', 'Please enter email and password.');
-      return;
-    }
-    // Simulate login logic
-    if (_emailController.text == 'moderator@gmail.com' && _passwordController.text == 'password') {
+  void _login() {
+    if (_formKey.currentState!.validate()) {
       Navigator.of(context).pushReplacementNamed('/moderatorDashboard');
-    } else {
-      _showMessageBox(context, 'Login Failed', 'Invalid credentials.');
     }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('6. Moderator Login'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
+    return MainNavigation(
+      showBottomNav: false,
+      child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.security, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Moderator Access',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'moderator@gmail.com',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      hintText: '*********',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _enable2FA,
-                        onChanged: (bool? newValue) {
-                          setState(() {
-                            _enable2FA = newValue!;
-                          });
-                        },
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.security,
+                              size: 50,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Moderator Access',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'moderator@example.com',
+                              prefixIcon: Icon(Icons.email),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Password',
+                              hintText: '********',
+                              prefixIcon: Icon(Icons.lock),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _rememberMe,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _rememberMe = value!;
+                                  });
+                                },
+                              ),
+                              const Text('Remember me'),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {},
+                                child: const Text('Forgot password?'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: _login,
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                            child: const Text('Login Securely'),
+                          ),
+                        ],
                       ),
-                      const Text('Enable 2FA'),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _loginSecurely,
-                    child: const Text('Login Securely'),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -753,7 +827,6 @@ class _ModeratorLoginScreenState extends State<ModeratorLoginScreen> {
   }
 }
 
-// 7. Moderator Dashboard
 class ModeratorDashboardScreen extends StatelessWidget {
   const ModeratorDashboardScreen({super.key});
 
@@ -761,144 +834,79 @@ class ModeratorDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('7. Moderator Dashboard'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.dashboard, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Pending Reports',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: 'All Categories',
-                          items: const [
-                            DropdownMenuItem(value: 'All Categories', child: Text('All Categories')),
-                            DropdownMenuItem(value: 'Corruption', child: Text('Corruption')),
-                            DropdownMenuItem(value: 'Mismanagement', child: Text('Mismanagement')),
-                          ],
-                          onChanged: (String? newValue) {
-                            // Handle category filter change
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: 'All Locations',
-                          items: const [
-                            DropdownMenuItem(value: 'All Locations', child: Text('All Locations')),
-                            DropdownMenuItem(value: 'Kigali', child: Text('Kigali')),
-                            DropdownMenuItem(value: 'Butare', child: Text('Butare')),
-                          ],
-                          onChanged: (String? newValue) {
-                            // Handle location filter change
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // Example Report Item 1
-                  _buildReportItem(
-                    context,
-                    'Corruption Report',
-                    '2 hours ago',
-                    'Kigali',
-                    'Pending',
-                  ),
-                  const SizedBox(height: 16),
-                  // Example Report Item 2
-                  _buildReportItem(
-                    context,
-                    'Mismanagement Issue',
-                    '5 hours ago',
-                    'Butare',
-                    'Pending',
-                  ),
-                  // Add more report items dynamically
-                ],
-              ),
-            ),
+        title: const Text('Moderator Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-        ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildReportItem(BuildContext context, String title, String time, String location, String status) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed('/moderatorReportDetail');
-      },
-      child: Container(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.dashboard, size: 24, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pending Reports',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: 'All Categories',
+                            items: const [
+                              DropdownMenuItem(value: 'All Categories', child: Text('All Categories')),
+                              DropdownMenuItem(value: 'Corruption', child: Text('Corruption')),
+                              DropdownMenuItem(value: 'Mismanagement', child: Text('Mismanagement')),
+                            ],
+                            onChanged: (value) {},
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: 'All Locations',
+                            items: const [
+                              DropdownMenuItem(value: 'All Locations', child: Text('All Locations')),
+                              DropdownMenuItem(value: 'Kigali', child: Text('Kigali')),
+                              DropdownMenuItem(value: 'Butare', child: Text('Butare')),
+                            ],
+                            onChanged: (value) {},
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildReportItem(context, 'Corruption Report', '2 hours ago', 'Kigali', 'Pending'),
+                    const SizedBox(height: 8),
+                    _buildReportItem(context, 'Mismanagement Issue', '5 hours ago', 'Butare', 'Pending'),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: warningColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    status,
-                    style: TextStyle(color: warningColor, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Submitted: $time • $location',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                'Click to view details',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: primaryColor, fontStyle: FontStyle.italic),
               ),
             ),
           ],
@@ -906,33 +914,52 @@ class ModeratorDashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildReportItem(BuildContext context, String title, String time, String location, String status) {
+    return Card(
+      elevation: 0,
+      color: Colors.grey[50],
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text('$time • $location'),
+        trailing: Chip(
+          backgroundColor: warningColor.withOpacity(0.1),
+          label: Text(status, style: TextStyle(color: warningColor)),
+        ),
+        onTap: () {
+          Navigator.of(context).pushNamed('/moderatorReportDetail');
+        },
+      ),
+    );
+  }
 }
 
-// 8. Moderator Report Detail
 class ModeratorReportDetailScreen extends StatelessWidget {
   const ModeratorReportDetailScreen({super.key});
 
-  void _showActionConfirmation(BuildContext context, String action) {
-    _showMessageBox(
-      context,
-      '$action Report',
-      'Are you sure you want to $action this report?',
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Close dialog
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Close dialog
-            Navigator.of(context).pop(); // Go back to dashboard after action
-            _showMessageBox(context, 'Success', 'Report $action-ed successfully!');
-          },
-          child: Text(action, style: TextStyle(color: action == 'Verify' ? successColor : errorColor)),
-        ),
-      ],
+  void _showActionDialog(BuildContext context, String action) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$action Report'),
+        content: Text('Are you sure you want to $action this report?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Report $action successfully')),
+              );
+            },
+            child: Text(action, style: TextStyle(color: action == 'Verify' ? successColor : errorColor)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -940,75 +967,90 @@ class ModeratorReportDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('8. Moderator Report Detail'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
+        title: const Text('Report Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.info_outline, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Report Details',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  // Report details
-                  _buildDetailRow(context, 'Title:', 'Corruption in Local Office'),
-                  _buildDetailRow(context, 'Category:', 'Corruption'),
-                  _buildDetailRow(context, 'Location:', 'Kigali City'),
-                  // Add more details as needed (e.g., description, attachments)
-                  const SizedBox(height: 30),
-                  TextFormField(
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Add verification notes ...',
-                      hintText: 'Enter notes here...',
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _showActionConfirmation(context, 'Verify'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: successColor,
-                            foregroundColor: Colors.white,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.info_outline, size: 24, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Report Details',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: const Text('Verify'),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailRow(context, 'Title:', 'Corruption in Local Office'),
+                    _buildDetailRow(context, 'Category:', 'Corruption'),
+                    _buildDetailRow(context, 'Location:', 'Kigali City'),
+                    _buildDetailRow(context, 'Submitted:', '2 days ago'),
+                    _buildDetailRow(context, 'Status:', 'Pending'),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Description:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Details about the corruption case would be displayed here. This is a sample description text.',
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Verification Notes',
+                        border: OutlineInputBorder(),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _showActionConfirmation(context, 'Reject'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: errorColor,
-                            foregroundColor: Colors.white,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _showActionDialog(context, 'Verify'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: successColor,
+                            ),
+                            child: const Text('Verify'),
                           ),
-                          child: const Text('Reject'),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _showActionDialog(context, 'Reject'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: errorColor,
+                            ),
+                            child: const Text('Reject'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -1016,143 +1058,122 @@ class ModeratorReportDetailScreen extends StatelessWidget {
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 }
 
-// 9. Public Open Dashboard
 class PublicOpenDashboardScreen extends StatelessWidget {
   const PublicOpenDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('9. Public Open Dashboard'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.public, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Public Dashboard',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  // Interactive Heatmap Placeholder
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: primaryColor),
-                    ),
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.map, size: 50, color: primaryColor),
-                          SizedBox(height: 10),
-                          Text(
-                            'Interactive Heatmap',
-                            style: TextStyle(color: primaryColor, fontSize: 18, fontWeight: FontWeight.bold),
+    return MainNavigation(
+      currentIndex: 3,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.public, size: 24, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Public Dashboard',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.map, size: 50, color: primaryColor),
+                            SizedBox(height: 8),
+                            Text('Interactive Heatmap'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildDashboardStat(context, '45', 'Corruption', warningColor),
-                      _buildDashboardStat(context, '23', 'Verified', successColor),
-                      _buildDashboardStat(context, '12', 'This Week', primaryColor),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/dataPurchase');
-                    },
-                    child: const Text('Request Data Package'),
-                  ),
-                  const SizedBox(height: 20),
-                  // Language selection placeholder
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      'English  French', // Placeholder for language selection
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem('45', 'Corruption', warningColor),
+                        _buildStatItem('23', 'Verified', successColor),
+                        _buildStatItem('12', 'This Week', primaryColor),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/dataPurchase');
+                      },
+                      child: const Text('Request Data Package'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDashboardStat(BuildContext context, String count, String label, Color color) {
+  Widget _buildStatItem(String value, String label, Color color) {
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            shape: BoxShape.circle,
           ),
           child: Text(
-            count,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            value,
+            style: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
-          textAlign: TextAlign.center,
-        ),
+        const SizedBox(height: 4),
+        Text(label),
       ],
     );
   }
 }
 
-// 10. Data Purchase
 class DataPurchaseScreen extends StatefulWidget {
   const DataPurchaseScreen({super.key});
 
@@ -1161,216 +1182,129 @@ class DataPurchaseScreen extends StatefulWidget {
 }
 
 class _DataPurchaseScreenState extends State<DataPurchaseScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _organizationController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-  void _purchaseAndDownload() {
-    if (_organizationController.text.isEmpty || _emailController.text.isEmpty) {
-      _showMessageBox(context, 'Input Required', 'Please fill in organization and email details.');
-      return;
+  void _purchaseData() {
+    if (_formKey.currentState!.validate()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Purchase Successful'),
+          content: Text('Thank you! Download link sent to ${_emailController.text}'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
-    // Simulate purchase and download logic
-    _showMessageBox(
-      context,
-      'Purchase Successful!',
-      'Thank you for your purchase. A download link has been sent to ${_emailController.text}.',
-    );
-  }
-
-  @override
-  void dispose() {
-    _organizationController.dispose();
-    _emailController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('10. Data Purchase'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.cloud_download, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Research Access',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  TextFormField(
-                    controller: _organizationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Organization',
-                      hintText: 'Research Institute Name',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'researcher@instituteedu.com',
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Data Package',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Anonymized CSV export',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '\$99 USD',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: successColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: _purchaseAndDownload,
-                    child: const Text('Purchase & Download'),
-                  ),
-                  const SizedBox(height: 20),
-                  // Language selection placeholder
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      'English  French', // Placeholder for language selection
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// 11. Settings / Language & Help
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('11. Settings / Language & Help'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.settings, size: 60, color: primaryColor),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Settings',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Divider(height: 40, thickness: 2, color: Colors.grey),
-                  _buildSettingsItem(context, Icons.language, 'Language', onTap: () {
-                    _showMessageBox(context, 'Language', 'Language selection not implemented.');
-                  }),
-                  _buildSettingsItem(context, Icons.question_mark_rounded, 'FAQs', onTap: () {
-                    _showMessageBox(context, 'FAQs', 'Frequently Asked Questions page coming soon.');
-                  }),
-                  _buildSettingsItem(context, Icons.contact_support, 'Contact Support', onTap: () {
-                    _showMessageBox(context, 'Contact Support', 'Contact details for support.');
-                  }),
-                  _buildSettingsItem(context, Icons.privacy_tip, 'Privacy Policy', onTap: () {
-                    _showMessageBox(context, 'Privacy Policy', 'Privacy Policy content not available.');
-                  }),
-                  _buildSettingsItem(context, Icons.logout, 'Logout',
-                      isLogout: true,
-                      onTap: () {
-                        _showMessageBox(context, 'Logout', 'You have been logged out.');
-                        Navigator.of(context).popUntil((route) => route.isFirst); // Go to splash screen
-                      }),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsItem(BuildContext context, IconData icon, String title, {bool isLogout = false, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-        child: Row(
+    return MainNavigation(
+      showBottomNav: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            Icon(
-              icon,
-              color: isLogout ? errorColor : primaryColor,
-              size: 28,
-            ),
-            const SizedBox(width: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: isLogout ? errorColor : Colors.black87,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.cloud_download, size: 24, color: primaryColor),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Research Access',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _organizationController,
+                        decoration: const InputDecoration(
+                          labelText: 'Organization',
+                          hintText: 'Research Institute Name',
+                          prefixIcon: Icon(Icons.business),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter organization name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          hintText: 'researcher@institute.edu',
+                          prefixIcon: Icon(Icons.email),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Data Package',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text('Anonymized CSV export'),
+                            const SizedBox(height: 8),
+                            Text(
+                              '\$99 USD',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: successColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _purchaseData,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                        ),
+                        child: const Text('Purchase & Download'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const Spacer(),
-            if (!isLogout)
-              Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey[600]),
           ],
         ),
       ),
@@ -1378,25 +1312,104 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// Custom message box function instead of alert()
-void _showMessageBox(BuildContext context, String title, String message, {List<Widget>? actions}) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
-        actions: actions ??
-            [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MainNavigation(
+      currentIndex: 4,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.settings, size: 24, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Settings',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSettingsItem(
+                      context,
+                      Icons.language,
+                      'Language',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Language selection')),
+                        );
+                      },
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.help_outline,
+                      'Help & FAQs',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Help & FAQs')),
+                        );
+                      },
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.privacy_tip,
+                      'Privacy Policy',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Privacy Policy')),
+                        );
+                      },
+                    ),
+                    _buildSettingsItem(
+                      context,
+                      Icons.logout,
+                      'Logout',
+                      isLogout: true,
+                      onTap: () {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
-      );
-    },
-  );
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(
+      BuildContext context,
+      IconData icon,
+      String title, {
+        bool isLogout = false,
+        VoidCallback? onTap,
+      }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isLogout ? errorColor : primaryColor,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isLogout ? errorColor : textColor,
+        ),
+      ),
+      trailing: isLogout ? null : const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
 }
