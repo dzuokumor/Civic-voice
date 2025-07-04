@@ -748,36 +748,205 @@ class ModeratorLoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MainNavigation(
-      showBottomNav: false,
-      child: Center(child: Text('Moderator Login Screen')),
+    return Scaffold(
+      backgroundColor: Colors.lightBlue[50],
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Moderator Access',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 30),
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'moderator@gmail.com',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const TextField(
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Checkbox(value: true, onChanged: (_) {}),
+                  const Text('Enable 2FA'),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ModeratorDashboardScreen()),
+                  );
+                },
+                child: const Text('Login Securely'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class ModeratorDashboardScreen extends StatelessWidget {
-  const ModeratorDashboardScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: null,
-      body: Center(child: Text('Moderator Dashboard Screen')),
-    );
-  }
-}
+// class ModeratorDashboardScreen extends StatelessWidget {
+//   const ModeratorDashboardScreen({super.key});
 
-class ModeratorReportDetailScreen extends StatelessWidget {
-  const ModeratorReportDetailScreen({super.key});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.lightBlue[50],
+//       appBar: AppBar(
+//         title: const Text('Moderator Dashboard'),
+//         backgroundColor: Colors.blueAccent,
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           children: [
+//             const Text(
+//               'Pending Reports',
+//               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 20),
+//             ReportCard(
+//               title: 'Corruption Report',
+//               subtitle: 'Submitted: 2 hours ago • Kigali',
+//               onTap: () {
+//                 Navigator.push(
+//                   context,
+//                   MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
+//                 );
+//               },
+//             ),
+//             const SizedBox(height: 16),
+//             ReportCard(
+//               title: 'Mismanagement Issue',
+//               subtitle: 'Click to view details',
+//               onTap: () {
+//                 Navigator.push(
+//                   context,
+//                   MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
+//                 );
+//               },
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: null,
-      body: Center(child: Text('Moderator Report Detail Screen')),
-    );
-  }
-}
+// class ReportCard extends StatelessWidget {
+//   final String title;
+//   final String subtitle;
+//   final VoidCallback onTap;
+
+//   const ReportCard({
+//     super.key,
+//     required this.title,
+//     required this.subtitle,
+//     required this.onTap,
+//   });
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       elevation: 3,
+//       child: ListTile(
+//         title: Text(title),
+//         subtitle: Text(subtitle),
+//         trailing: const Chip(label: Text('Pending')),
+//         onTap: onTap,
+//       ),
+//     );
+//   }
+// }
+
+
+// class ModeratorReportDetailScreen extends StatelessWidget {
+//   const ModeratorReportDetailScreen({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.lightBlue[50],
+//       appBar: AppBar(
+//         title: const Text('Report Details'),
+//         backgroundColor: Colors.blueAccent,
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(24.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             const Text(
+//               'Title: Corruption in Local Office',
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 10),
+//             const Text('Category: Corruption'),
+//             const Text('Location: Kigali City'),
+//             const SizedBox(height: 20),
+//             const TextField(
+//               maxLines: 5,
+//               decoration: InputDecoration(
+//                 labelText: 'Add verification notes...',
+//                 border: OutlineInputBorder(),
+//               ),
+//             ),
+//             const SizedBox(height: 30),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//               children: [
+//                 ElevatedButton.icon(
+//                   icon: const Icon(Icons.check),
+//                   label: const Text('Verify'),
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Colors.green,
+//                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+//                   ),
+//                   onPressed: () {
+//                     Navigator.pop(context);
+//                   },
+//                 ),
+//                 ElevatedButton.icon(
+//                   icon: const Icon(Icons.cancel),
+//                   label: const Text('Reject'),
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Colors.red,
+//                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+//                   ),
+//                   onPressed: () {
+//                     Navigator.pop(context);
+//                   },
+//                 ),
+//               ],
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 
 class PublicOpenDashboardScreen extends StatelessWidget {
   const PublicOpenDashboardScreen({super.key});
