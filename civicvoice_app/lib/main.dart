@@ -229,6 +229,7 @@ class IconContainer extends StatelessWidget {
 }
 
 // Screens
+// SPLASH SCREEN
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -295,7 +296,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 }
-
+// ONBOARDING SCREEN
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -345,7 +346,7 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 }
-
+// ANONYMOUS REPORT SCREEN
 class AnonymousReportFormScreen extends StatefulWidget {
   const AnonymousReportFormScreen({super.key});
 
@@ -496,7 +497,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
     );
   }
 }
-
+// SUBMISSION CONFIRMATION
 class SubmissionConfirmationScreen extends StatelessWidget {
   final String referenceCode;
   
@@ -608,6 +609,7 @@ class SubmissionConfirmationScreen extends StatelessWidget {
 }
 
 // Additional screens following the same pattern...
+// TRACKING REPORT STATUS
 class TrackReportStatusScreen extends StatefulWidget {
   const TrackReportStatusScreen({super.key});
 
@@ -743,6 +745,7 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
 }
 
 // Placeholder screens for remaining functionality
+// MODERATOR LOGIN SCREEN
 class ModeratorLoginScreen extends StatelessWidget {
   const ModeratorLoginScreen({super.key});
 
@@ -805,7 +808,7 @@ class ModeratorLoginScreen extends StatelessWidget {
   }
 }
 
-
+// MODERATOR DASHBOARD SCREEN
 class ModeratorDashboardScreen extends StatelessWidget {
   const ModeratorDashboardScreen({super.key});
 
@@ -880,7 +883,7 @@ class ReportCard extends StatelessWidget {
   }
 }
 
-
+// MODERATOR REPORT DETAIL SCREEN
 class ModeratorReportDetailScreen extends StatelessWidget {
   const ModeratorReportDetailScreen({super.key});
 
@@ -947,7 +950,7 @@ class ModeratorReportDetailScreen extends StatelessWidget {
   }
 }
 
-
+// PUBLIC OPEN DASHBOARD SCREEN
 class PublicOpenDashboardScreen extends StatelessWidget {
   const PublicOpenDashboardScreen({super.key});
 
@@ -959,7 +962,7 @@ class PublicOpenDashboardScreen extends StatelessWidget {
     );
   }
 }
-
+// DATA PURCHASE SCREEN
 class DataPurchaseScreen extends StatelessWidget {
   const DataPurchaseScreen({super.key});
 
@@ -971,7 +974,7 @@ class DataPurchaseScreen extends StatelessWidget {
     );
   }
 }
-
+// SETTINGS SCREEN
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
