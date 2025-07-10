@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'landing_page_screen.dart';
+import 'public_open_dashboard_screen.dart';
 
 void main() {
   runApp(const CivicVoiceApp());
@@ -1110,17 +1111,17 @@ class ModeratorReportDetailScreen extends StatelessWidget {
 }
 
 // PUBLIC OPEN DASHBOARD SCREEN
-class PublicOpenDashboardScreen extends StatelessWidget {
-  const PublicOpenDashboardScreen({super.key});
+// class PublicOpenDashboardScreen extends StatelessWidget {
+//   const PublicOpenDashboardScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const MainNavigation(
-      currentIndex: 3,
-      child: Center(child: Text('Public Dashboard Screen')),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return const MainNavigation(
+//       currentIndex: 3,
+//       child: Center(child: Text('Public Dashboard Screen')),
+//     );
+//   }
+// }
 // DATA PURCHASE SCREEN
 class DataPurchaseScreen extends StatelessWidget {
   const DataPurchaseScreen({super.key});
