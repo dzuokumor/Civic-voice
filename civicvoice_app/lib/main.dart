@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'landing_page_screen.dart';
 
 void main() {
   runApp(const CivicVoiceApp());
@@ -18,33 +22,97 @@ class AppColors {
   static const Color textSecondary = Color(0xFF666666);
 }
 
-class AppStrings {
-  static const String appTitle = 'CivicVoice';
-  static const String anonymous = '100% Anonymous';
-  static const String anonymousDescription = 'Report governance issues safely without revealing your identity. Your privacy is our priority.';
-  static const String getStarted = 'Get Started';
-  static const String submitReport = 'Submit Report';
-  static const String reportSubmitted = 'Report Submitted!';
-  static const String reportSubmittedDescription = 'Your report has been submitted anonymously';
-  static const String referenceCode = 'Reference Code';
-  static const String copyCode = 'Copy Code';
-  static const String returnHome = 'Return Home';
-  static const String trackReport = 'Track Report';
-  static const String checkStatus = 'Check Status';
-  static const String moderatorAccess = 'Moderator Access';
-  static const String loginSecurely = 'Login Securely';
-  static const String publicDashboard = 'Public Dashboard';
-  static const String requestDataPackage = 'Request Data Package';
-  static const String settings = 'Settings';
+enum AppLanguage { en, fr }
+
+class AppLocalizations {
+  static AppLanguage currentLanguage = AppLanguage.en;
+  static final Map<AppLanguage, Map<String, String>> _localizedValues = {
+    AppLanguage.en: {
+      'appTitle': 'CivicVoice',
+      'anonymous': '100% Anonymous',
+      'anonymousDescription': 'Report governance issues safely without revealing your identity. Your privacy is our priority.',
+      'getStarted': 'Get Started',
+      'submitReport': 'Submit Report',
+      'reportSubmitted': 'Report Submitted!',
+      'reportSubmittedDescription': 'Your report has been submitted anonymously',
+      'referenceCode': 'Reference Code',
+      'passphrase': 'Passphrase',
+      'copyCode': 'Copy Code',
+      'returnHome': 'Return Home',
+      'trackReport': 'Track Report',
+      'checkStatus': 'Check Status',
+      'moderatorAccess': 'Moderator Access',
+      'loginSecurely': 'Login Securely',
+      'publicDashboard': 'Public Dashboard',
+      'requestDataPackage': 'Request Data Package',
+      'settings': 'Settings',
+      'attachProof': 'Attach Proof',
+      'selectLanguage': 'Select Language',
+      'english': 'English',
+      'french': 'Français',
+      'fileAttached': 'File attached',
+      'noFile': 'No file selected',
+      'tapToCopy': 'Tap to copy',
+      'passphraseHint': '6-digit code',
+    },
+    AppLanguage.fr: {
+      'appTitle': 'CivicVoice',
+      'anonymous': '100% Anonyme',
+      'anonymousDescription': 'Signalez les problèmes de gouvernance en toute sécurité sans révéler votre identité. Votre vie privée est notre priorité.',
+      'getStarted': 'Commencer',
+      'submitReport': 'Soumettre un rapport',
+      'reportSubmitted': 'Rapport soumis!',
+      'reportSubmittedDescription': 'Votre rapport a été soumis anonymement',
+      'referenceCode': 'Code de référence',
+      'passphrase': 'Phrase secrète',
+      'copyCode': 'Copier le code',
+      'returnHome': 'Retour à l\'accueil',
+      'trackReport': 'Suivre le rapport',
+      'checkStatus': 'Vérifier le statut',
+      'moderatorAccess': 'Accès modérateur',
+      'loginSecurely': 'Connexion sécurisée',
+      'publicDashboard': 'Tableau de bord public',
+      'requestDataPackage': 'Demander un package de données',
+      'settings': 'Paramètres',
+      'attachProof': 'Joindre une preuve',
+      'selectLanguage': 'Choisir la langue',
+      'english': 'Anglais',
+      'french': 'Français',
+      'fileAttached': 'Fichier joint',
+      'noFile': 'Aucun fichier sélectionné',
+      'tapToCopy': 'Appuyez pour copier',
+      'passphraseHint': 'Code à 6 chiffres',
+    },
+  };
+  static String t(String key) => _localizedValues[currentLanguage]?[key] ?? key;
 }
 
-class CivicVoiceApp extends StatelessWidget {
-  const CivicVoiceApp({super.key});
+class AppRoutes {
+  static const String splash = '/';
+  static const String landing = '/landing';
+  static const String onboarding = '/onboarding';
+  static const String reportForm = '/anonymousReportForm';
+  static const String submissionConfirmation = '/submissionConfirmation';
+  static const String trackStatus = '/trackReportStatus';
+  static const String moderatorLogin = '/moderatorLogin';
+  static const String moderatorDashboard = '/moderatorDashboard';
+  static const String moderatorReportDetail = '/moderatorReportDetail';
+  static const String publicDashboard = '/publicOpenDashboard';
+  static const String dataPurchase = '/dataPurchase';
+  static const String settings = '/settings';
+}
 
+class CivicVoiceApp extends StatefulWidget {
+  const CivicVoiceApp({super.key});
+  @override
+  State<CivicVoiceApp> createState() => _CivicVoiceAppState();
+}
+
+class _CivicVoiceAppState extends State<CivicVoiceApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: AppStrings.appTitle,
+      title: AppLocalizations.t('appTitle'),
       theme: _buildTheme(),
       initialRoute: AppRoutes.splash,
       routes: _buildRoutes(),
@@ -93,33 +161,31 @@ class CivicVoiceApp extends StatelessWidget {
   Map<String, WidgetBuilder> _buildRoutes() {
     return {
       AppRoutes.splash: (context) => const SplashScreen(),
+      AppRoutes.landing: (context) => const LandingPageScreen(),
       AppRoutes.onboarding: (context) => const OnboardingScreen(),
-      AppRoutes.reportForm: (context) => const AnonymousReportFormScreen(),
-      AppRoutes.submissionConfirmation: (context) => 
-          const SubmissionConfirmationScreen(referenceCode: 'REF-2025-001234'),
+      AppRoutes.reportForm: (context) => AnonymousReportFormScreen(onLanguageChanged: _onLanguageChanged),
+      AppRoutes.submissionConfirmation: (context) {
+        final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
+        return SubmissionConfirmationScreen(
+          referenceCode: args?['referenceCode'] ?? '',
+          passphrase: args?['passphrase'] ?? '',
+        );
+      },
       AppRoutes.trackStatus: (context) => const TrackReportStatusScreen(),
       AppRoutes.moderatorLogin: (context) => const ModeratorLoginScreen(),
       AppRoutes.moderatorDashboard: (context) => const ModeratorDashboardScreen(),
       AppRoutes.moderatorReportDetail: (context) => const ModeratorReportDetailScreen(),
       AppRoutes.publicDashboard: (context) => const PublicOpenDashboardScreen(),
       AppRoutes.dataPurchase: (context) => const DataPurchaseScreen(),
-      AppRoutes.settings: (context) => const SettingsScreen(),
+      AppRoutes.settings: (context) => SettingsScreen(onLanguageChanged: _onLanguageChanged),
     };
   }
-}
 
-class AppRoutes {
-  static const String splash = '/';
-  static const String onboarding = '/onboarding';
-  static const String reportForm = '/anonymousReportForm';
-  static const String submissionConfirmation = '/submissionConfirmation';
-  static const String trackStatus = '/trackReportStatus';
-  static const String moderatorLogin = '/moderatorLogin';
-  static const String moderatorDashboard = '/moderatorDashboard';
-  static const String moderatorReportDetail = '/moderatorReportDetail';
-  static const String publicDashboard = '/publicOpenDashboard';
-  static const String dataPurchase = '/dataPurchase';
-  static const String settings = '/settings';
+  void _onLanguageChanged(AppLanguage lang) {
+    setState(() {
+      AppLocalizations.currentLanguage = lang;
+    });
+  }
 }
 
 // Common Widgets
@@ -257,7 +323,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.forward();
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+        Navigator.of(context).pushReplacementNamed(AppRoutes.landing);
       }
     });
   }
@@ -317,7 +383,7 @@ class OnboardingScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  AppStrings.anonymous,
+                  AppLocalizations.t('anonymous'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
@@ -327,7 +393,7 @@ class OnboardingScreen extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: 24),
                 Text(
-                  AppStrings.anonymousDescription,
+                  AppLocalizations.t('anonymousDescription'),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -336,7 +402,7 @@ class OnboardingScreen extends StatelessWidget {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pushNamed(AppRoutes.reportForm),
-                  child: const Text(AppStrings.getStarted),
+                  child: Text(AppLocalizations.t('getStarted')),
                 ),
               ],
             ),
@@ -348,8 +414,8 @@ class OnboardingScreen extends StatelessWidget {
 }
 // ANONYMOUS REPORT SCREEN
 class AnonymousReportFormScreen extends StatefulWidget {
-  const AnonymousReportFormScreen({super.key});
-
+  final void Function(AppLanguage)? onLanguageChanged;
+  const AnonymousReportFormScreen({super.key, this.onLanguageChanged});
   @override
   State<AnonymousReportFormScreen> createState() => _AnonymousReportFormScreenState();
 }
@@ -358,10 +424,10 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
   String? _selectedCategory;
   String _location = 'Tap to select location';
-  
+  File? _attachment;
+  AppLanguage _selectedLanguage = AppLocalizations.currentLanguage;
   static const List<String> _categories = ['Corruption', 'Mismanagement', 'Abuse of Power', 'Other'];
 
   @override
@@ -371,12 +437,30 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
     super.dispose();
   }
 
+  Future<void> _pickAttachment() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _attachment = File(result.files.single.path!);
+      });
+    }
+  }
+
+  String _generatePassphrase() {
+    final rand = Random();
+    return List.generate(6, (_) => rand.nextInt(10)).join();
+  }
+
   void _submitReport() {
     if (_formKey.currentState!.validate()) {
       final referenceCode = 'REF-${DateTime.now().year}-${_titleController.text.hashCode.abs()}';
+      final passphrase = _generatePassphrase();
       Navigator.of(context).pushNamed(
         AppRoutes.submissionConfirmation,
-        arguments: referenceCode,
+        arguments: {
+          'referenceCode': referenceCode,
+          'passphrase': passphrase,
+        },
       );
     }
   }
@@ -402,6 +486,10 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
                 _buildLocationField(),
                 const SizedBox(height: 16),
                 _buildDescriptionField(),
+                const SizedBox(height: 16),
+                _buildAttachmentField(),
+                const SizedBox(height: 16),
+                _buildLanguageDropdown(),
                 const SizedBox(height: 24),
                 _buildSubmitButton(),
               ],
@@ -426,7 +514,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
         ),
         const SizedBox(width: 16),
         Text(
-          AppStrings.submitReport,
+          AppLocalizations.t('submitReport'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -489,6 +577,43 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
     );
   }
 
+  Widget _buildAttachmentField() {
+    return Row(
+      children: [
+        ElevatedButton.icon(
+          onPressed: _pickAttachment,
+          icon: const Icon(Icons.attach_file),
+          label: Text(AppLocalizations.t('attachProof')),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(_attachment != null ? AppLocalizations.t('fileAttached') : AppLocalizations.t('noFile')),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLanguageDropdown() {
+    return DropdownButtonFormField<AppLanguage>(
+      value: _selectedLanguage,
+      decoration: InputDecoration(
+        labelText: AppLocalizations.t('selectLanguage'),
+        prefixIcon: const Icon(Icons.language),
+      ),
+      items: AppLanguage.values.map((lang) => DropdownMenuItem(
+        value: lang,
+        child: Text(AppLocalizations._localizedValues[lang]!['english']!),
+      )).toList(),
+      onChanged: (lang) {
+        if (lang != null) {
+          setState(() => _selectedLanguage = lang);
+          AppLocalizations.currentLanguage = lang;
+          if (widget.onLanguageChanged != null) widget.onLanguageChanged!(lang);
+        }
+      },
+    );
+  }
+
   Widget _buildSubmitButton() {
     return ElevatedButton(
       onPressed: _submitReport,
@@ -500,13 +625,13 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
 // SUBMISSION CONFIRMATION
 class SubmissionConfirmationScreen extends StatelessWidget {
   final String referenceCode;
-  
-  const SubmissionConfirmationScreen({super.key, required this.referenceCode});
+  final String passphrase;
+  const SubmissionConfirmationScreen({super.key, required this.referenceCode, required this.passphrase});
 
-  void _copyToClipboard(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: referenceCode));
+  void _copyToClipboard(BuildContext context, String value) {
+    Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reference code copied to clipboard')),
+      SnackBar(content: Text('${AppLocalizations.t('copyCode')}: $value')),
     );
   }
 
@@ -528,7 +653,7 @@ class SubmissionConfirmationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  AppStrings.reportSubmitted,
+                  AppLocalizations.t('reportSubmitted'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -537,12 +662,14 @@ class SubmissionConfirmationScreen extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: 24),
                 Text(
-                  AppStrings.reportSubmittedDescription,
+                  AppLocalizations.t('reportSubmittedDescription'),
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
                 _buildReferenceCodeContainer(context),
+                const SizedBox(height: 16),
+                _buildPassphraseContainer(context),
                 const SizedBox(height: 24),
                 _buildActionButtons(context),
               ],
@@ -563,12 +690,12 @@ class SubmissionConfirmationScreen extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            AppStrings.referenceCode,
+            AppLocalizations.t('referenceCode'),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () => _copyToClipboard(context),
+            onTap: () => _copyToClipboard(context, referenceCode),
             child: Text(
               referenceCode,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -579,7 +706,41 @@ class SubmissionConfirmationScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap to copy',
+            AppLocalizations.t('tapToCopy'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPassphraseContainer(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            AppLocalizations.t('passphrase'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => _copyToClipboard(context, passphrase),
+            child: Text(
+              passphrase,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            AppLocalizations.t('tapToCopy'),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -592,15 +753,15 @@ class SubmissionConfirmationScreen extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => _copyToClipboard(context),
-            child: const Text(AppStrings.copyCode),
+            onPressed: () => _copyToClipboard(context, referenceCode),
+            child: Text(AppLocalizations.t('copyCode')),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
             onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-            child: const Text(AppStrings.returnHome),
+            child: Text(AppLocalizations.t('returnHome')),
           ),
         ),
       ],
@@ -608,7 +769,6 @@ class SubmissionConfirmationScreen extends StatelessWidget {
   }
 }
 
-// Additional screens following the same pattern...
 // TRACKING REPORT STATUS
 class TrackReportStatusScreen extends StatefulWidget {
   const TrackReportStatusScreen({super.key});
@@ -679,7 +839,7 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
         ),
         const SizedBox(width: 16),
         Text(
-          AppStrings.trackReport,
+          AppLocalizations.t('trackReport'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -703,7 +863,7 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
     return ElevatedButton(
       onPressed: _checkStatus,
       style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-      child: const Text(AppStrings.checkStatus),
+      child: Text(AppLocalizations.t('checkStatus')),
     );
   }
 
@@ -744,7 +904,6 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
   }
 }
 
-// Placeholder screens for remaining functionality
 // MODERATOR LOGIN SCREEN
 class ModeratorLoginScreen extends StatelessWidget {
   const ModeratorLoginScreen({super.key});
@@ -976,13 +1135,33 @@ class DataPurchaseScreen extends StatelessWidget {
 }
 // SETTINGS SCREEN
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
+  final void Function(AppLanguage)? onLanguageChanged;
+  const SettingsScreen({super.key, this.onLanguageChanged});
   @override
   Widget build(BuildContext context) {
-    return const MainNavigation(
+    return MainNavigation(
       currentIndex: 4,
-      child: Center(child: Text('Settings Screen')),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(AppLocalizations.t('settings'), style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 24),
+            DropdownButton<AppLanguage>(
+              value: AppLocalizations.currentLanguage,
+              items: AppLanguage.values.map((lang) => DropdownMenuItem(
+                value: lang,
+                child: Text(AppLocalizations._localizedValues[lang]!['english']!),
+              )).toList(),
+              onChanged: (lang) {
+                if (lang != null && onLanguageChanged != null) {
+                  onLanguageChanged!(lang);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
