@@ -315,7 +315,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   void _initializeAnimation() {
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 5), // Changed from 2 to 5 seconds
       vsync: this,
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
