@@ -47,3 +47,29 @@ class ModeratorDashboardScreen extends StatelessWidget {
     );
   }
 }
+
+class ReportCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const ReportCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Chip(label: Text('Pending')),
+        onTap: onTap,
+      ),
+    );
+  }
+}
