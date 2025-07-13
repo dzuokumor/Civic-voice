@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+
 class ModeratorDashboardScreen extends StatelessWidget {
   const ModeratorDashboardScreen({super.key});
 
@@ -26,7 +26,7 @@ class ModeratorDashboardScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
+                  MaterialPageRoute(builder: (_) => const ModeratorDashboardScreen()),
                 );
               },
             ),
@@ -37,7 +37,7 @@ class ModeratorDashboardScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
+                  MaterialPageRoute(builder: (_) => const ModeratorDashboardScreen()),
                 );
               },
             ),

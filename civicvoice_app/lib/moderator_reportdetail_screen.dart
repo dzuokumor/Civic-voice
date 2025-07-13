@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+
 class ModeratorReportDetailScreen extends StatelessWidget {
   const ModeratorReportDetailScreen({super.key});
 

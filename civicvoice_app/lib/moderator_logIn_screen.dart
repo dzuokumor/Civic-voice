@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import 'moderator_dashboard_screen.dart'; 
 
 class ModeratorLoginScreen extends StatelessWidget {
   const ModeratorLoginScreen({super.key});
