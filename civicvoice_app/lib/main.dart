@@ -23,7 +23,7 @@ class AppColors {
   static const Color textSecondary = Color(0xFF666666);
 }
 
-enum AppLanguage { en, fr }
+enum AppLanguage { en, fr, rw, sw }
 
 class AppLocalizations {
   static AppLanguage currentLanguage = AppLanguage.en;
@@ -51,6 +51,8 @@ class AppLocalizations {
       'selectLanguage': 'Select Language',
       'english': 'English',
       'french': 'Français',
+      'kinyarwanda': 'Kinyarwanda',
+      'kiswahili': 'Kiswahili',
       'fileAttached': 'File attached',
       'noFile': 'No file selected',
       'tapToCopy': 'Tap to copy',
@@ -79,10 +81,72 @@ class AppLocalizations {
       'selectLanguage': 'Choisir la langue',
       'english': 'Anglais',
       'french': 'Français',
+      'kinyarwanda': 'Kinyarwanda',
+      'kiswahili': 'Kiswahili',
       'fileAttached': 'Fichier joint',
       'noFile': 'Aucun fichier sélectionné',
       'tapToCopy': 'Appuyez pour copier',
       'passphraseHint': 'Code à 6 chiffres',
+    },
+    AppLanguage.rw: {
+      'appTitle': 'CivicVoice',
+      'anonymous': '100% Ibanga',
+      'anonymousDescription': 'Tanga raporo ku bibazo bya guverinoma utagaragaje umwirondoro. Umutekano w’amakuru yawe ni ingenzi kuri twe.',
+      'getStarted': 'Tangira',
+      'submitReport': 'Tanga Raporo',
+      'reportSubmitted': 'Raporo Yatanzwe!',
+      'reportSubmittedDescription': 'Raporo yawe yatanzwe mu ibanga',
+      'referenceCode': 'Kode y’Indangamuntu',
+      'passphrase': 'Ijambo ry’ibanga',
+      'copyCode': 'Koporora Kode',
+      'returnHome': 'Subira Ahabanza',
+      'trackReport': 'Kurikira Raporo',
+      'checkStatus': 'Reba Imiterere',
+      'moderatorAccess': 'Kwinjira kw’Umugenzuzi',
+      'loginSecurely': 'Injira Utekanye',
+      'publicDashboard': 'Dashboard Rusange',
+      'requestDataPackage': 'Saba Paket y’Amakuru',
+      'settings': 'Igenamiterere',
+      'attachProof': 'Shyiraho Ikimenyetso',
+      'selectLanguage': 'Hitamo Ururimi',
+      'english': 'Icyongereza',
+      'french': 'Igifaransa',
+      'kinyarwanda': 'Ikinyarwanda',
+      'kiswahili': 'Icyiswahili',
+      'fileAttached': 'Ifishi yashyizweho',
+      'noFile': 'Nta fishi yahiswemo',
+      'tapToCopy': 'Kanda ukoporore',
+      'passphraseHint': 'Kode y’ibanga y’igitsina 6',
+    },
+    AppLanguage.sw: {
+      'appTitle': 'CivicVoice',
+      'anonymous': '100% Faragha',
+      'anonymousDescription': 'Ripoti masuala ya utawala bila kufichua utambulisho wako. Faragha yako ni kipaumbele chetu.',
+      'getStarted': 'Anza',
+      'submitReport': 'Wasilisha Ripoti',
+      'reportSubmitted': 'Ripoti Imetumwa!',
+      'reportSubmittedDescription': 'Ripoti yako imetumwa kwa faragha',
+      'referenceCode': 'Nambari ya Rejea',
+      'passphrase': 'Nenosiri',
+      'copyCode': 'Nakili Nambari',
+      'returnHome': 'Rudi Nyumbani',
+      'trackReport': 'Fuata Ripoti',
+      'checkStatus': 'Angalia Hali',
+      'moderatorAccess': 'Ufikiaji wa Mdhibiti',
+      'loginSecurely': 'Ingia Salama',
+      'publicDashboard': 'Dashibodi ya Umma',
+      'requestDataPackage': 'Omba Kifurushi cha Data',
+      'settings': 'Mipangilio',
+      'attachProof': 'Ambatisha Ushahidi',
+      'selectLanguage': 'Chagua Lugha',
+      'english': 'Kiingereza',
+      'french': 'Kifaransa',
+      'kinyarwanda': 'Kinyarwanda',
+      'kiswahili': 'Kiswahili',
+      'fileAttached': 'Faili Imeambatishwa',
+      'noFile': 'Hakuna faili iliyochaguliwa',
+      'tapToCopy': 'Gusa kunakili',
+      'passphraseHint': 'Nambari ya tarakimu 6',
     },
   };
   static String t(String key) => _localizedValues[currentLanguage]?[key] ?? key;
@@ -603,7 +667,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen> {
       ),
       items: AppLanguage.values.map((lang) => DropdownMenuItem(
         value: lang,
-        child: Text(AppLocalizations._localizedValues[lang]!['english']!),
+        child: Text(AppLocalizations._localizedValues[lang]![lang == AppLanguage.en ? 'english' : lang == AppLanguage.fr ? 'french' : lang == AppLanguage.rw ? 'kinyarwanda' : 'kiswahili']!),
       )).toList(),
       onChanged: (lang) {
         if (lang != null) {
@@ -1152,7 +1216,7 @@ class SettingsScreen extends StatelessWidget {
               value: AppLocalizations.currentLanguage,
               items: AppLanguage.values.map((lang) => DropdownMenuItem(
                 value: lang,
-                child: Text(AppLocalizations._localizedValues[lang]!['english']!),
+                child: Text(AppLocalizations._localizedValues[lang]![lang == AppLanguage.en ? 'english' : lang == AppLanguage.fr ? 'french' : lang == AppLanguage.rw ? 'kinyarwanda' : 'kiswahili']!),
               )).toList(),
               onChanged: (lang) {
                 if (lang != null && onLanguageChanged != null) {
