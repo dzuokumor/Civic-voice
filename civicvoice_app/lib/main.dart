@@ -4,6 +4,9 @@ import 'dart:math';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'landing_page_screen.dart';
+import 'moderator_logIn_screen.dart';
+import 'moderator_dashboard_screen.dart';
+import 'moderator_reportdetail_screen.dart';
 import 'public_open_dashboard_screen.dart';
 
 void main() {
@@ -970,209 +973,12 @@ class _TrackReportStatusScreenState extends State<TrackReportStatusScreen> {
 }
 
 // MODERATOR LOGIN SCREEN
-class ModeratorLoginScreen extends StatelessWidget {
-  const ModeratorLoginScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Moderator Access',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 30),
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'moderator@gmail.com',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Checkbox(value: true, onChanged: (_) {}),
-                  const Text('Enable 2FA'),
-                ],
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ModeratorDashboardScreen()),
-                  );
-                },
-                child: const Text('Login Securely'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // MODERATOR DASHBOARD SCREEN
-class ModeratorDashboardScreen extends StatelessWidget {
-  const ModeratorDashboardScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
-      appBar: AppBar(
-        title: const Text('Moderator Dashboard'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              'Pending Reports',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ReportCard(
-              title: 'Corruption Report',
-              subtitle: 'Submitted: 2 hours ago • Kigali',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            ReportCard(
-              title: 'Mismanagement Issue',
-              subtitle: 'Click to view details',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ModeratorReportDetailScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-class ReportCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
 
-  const ReportCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Chip(label: Text('Pending')),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-// MODERATOR REPORT DETAIL SCREEN
-class ModeratorReportDetailScreen extends StatelessWidget {
-  const ModeratorReportDetailScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
-      appBar: AppBar(
-        title: const Text('Report Details'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Title: Corruption in Local Office',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            const Text('Category: Corruption'),
-            const Text('Location: Kigali City'),
-            const SizedBox(height: 20),
-            const TextField(
-              maxLines: 5,
-              decoration: InputDecoration(
-                labelText: 'Add verification notes...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.check),
-                  label: const Text('Verify'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Reject'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // PUBLIC OPEN DASHBOARD SCREEN
 // class PublicOpenDashboardScreen extends StatelessWidget {
