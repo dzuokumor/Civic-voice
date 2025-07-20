@@ -229,8 +229,6 @@ class CivicVoiceApp extends StatelessWidget {
   }
 }
 
-// Replace the ConnectivityWrapper in your main.dart with this fixed version:
-
 class ConnectivityWrapper extends StatefulWidget {
   final Widget child;
 
