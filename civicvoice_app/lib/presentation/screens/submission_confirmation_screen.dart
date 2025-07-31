@@ -43,7 +43,6 @@ Keep this information safe and confidential.
   }
 
   void _saveCredentials(BuildContext context) {
-    // TODO: Implement secure local storage of credentials
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -57,9 +56,8 @@ Keep this information safe and confidential.
             onPressed: () => Navigator.pop(context),
             child: const Text('Not Now'),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
-              // Implement local storage
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -77,6 +75,9 @@ Keep this information safe and confidential.
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -90,163 +91,186 @@ Keep this information safe and confidential.
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      ),
-                    ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 48,
                   ),
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 60,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                const Text(
-                  'Report Submitted!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Your report has been submitted anonymously and is now being reviewed.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!isSmallScreen) const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.check_circle,
+                            size: isSmallScreen ? 40 : 60,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 20 : 32),
+                        Text(
+                          'Report Submitted!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isSmallScreen ? 24 : 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+                        Text(
+                          'Your report has been submitted anonymously and is now being reviewed.',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: isSmallScreen ? 14 : 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: isSmallScreen ? 24 : 32),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Save These Credentials',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isSmallScreen ? 16 : 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Use these to track your report status',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: isSmallScreen ? 12 : 14,
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 16 : 20),
+                              _buildCredentialItem(
+                                context,
+                                'Reference Code',
+                                referenceCode,
+                                Icons.tag,
+                                isSmallScreen,
+                              ),
+                              SizedBox(height: isSmallScreen ? 12 : 16),
+                              _buildCredentialItem(
+                                context,
+                                'Passphrase',
+                                passphrase,
+                                Icons.key,
+                                isSmallScreen,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 24 : 32),
+                        Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _shareCredentials(context),
+                                    icon: const Icon(Icons.share, size: 18),
+                                    label: const Text('Share'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Colors.white),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: isSmallScreen ? 12 : 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _saveCredentials(context),
+                                    icon: const Icon(Icons.save, size: 18),
+                                    label: const Text('Save'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Colors.white),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: isSmallScreen ? 12 : 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: isSmallScreen ? 12 : 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(context).popUntil(
+                                      (route) => route.isFirst,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: isSmallScreen ? 12 : 16,
+                                  ),
+                                  minimumSize:
+                                  Size(double.infinity, isSmallScreen ? 44 : 50),
+                                ),
+                                child: const Text('Done'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isSmallScreen) const Spacer(),
+                        SizedBox(height: isSmallScreen ? 16 : 0),
+                        TextButton.icon(
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            '/trackReportStatus',
+                            arguments: {
+                              'referenceCode': referenceCode,
+                              'passphrase': passphrase,
+                            },
+                          ),
+                          icon: const Icon(Icons.track_changes, size: 18),
+                          label: const Text('Track Report Status'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 8 : 16),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Save These Credentials',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Use these to track your report status',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      _buildCredentialItem(
-                        context,
-                        'Reference Code',
-                        referenceCode,
-                        Icons.tag,
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildCredentialItem(
-                        context,
-                        'Passphrase',
-                        passphrase,
-                        Icons.key,
-                      ),
-                    ],
-                  ),
                 ),
-                const SizedBox(height: 32),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _shareCredentials(context),
-                        icon: const Icon(Icons.share),
-                        label: const Text('Share'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _saveCredentials(context),
-                        icon: const Icon(Icons.save),
-                        label: const Text('Save'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                FilledButton(
-                  onPressed: () => Navigator.of(context).popUntil(
-                        (route) => route.isFirst,
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Theme.of(context).colorScheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: const Text('Done'),
-                ),
-                const Spacer(),
-
-                TextButton.icon(
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    '/trackReportStatus',
-                    arguments: {
-                      'referenceCode': referenceCode,
-                      'passphrase': passphrase,
-                    },
-                  ),
-                  icon: const Icon(Icons.track_changes),
-                  label: const Text('Track Report Status'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -258,9 +282,10 @@ Keep this information safe and confidential.
       String label,
       String value,
       IconData icon,
+      bool isSmallScreen,
       ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -275,15 +300,15 @@ Keep this information safe and confidential.
             children: [
               Icon(
                 icon,
-                size: 16,
+                size: isSmallScreen ? 14 : 16,
                 color: Colors.white70,
               ),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white70,
-                  fontSize: 12,
+                  fontSize: isSmallScreen ? 11 : 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -299,20 +324,20 @@ Keep this information safe and confidential.
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.copy,
-                        size: 12,
+                        size: isSmallScreen ? 10 : 12,
                         color: Colors.white,
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         'Copy',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: isSmallScreen ? 9 : 10,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -325,13 +350,18 @@ Keep this information safe and confidential.
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () => _copyToClipboard(context, value, label),
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+            child: Container(
+              width: double.infinity,
+              child: Text(
+                value,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
             ),
           ),

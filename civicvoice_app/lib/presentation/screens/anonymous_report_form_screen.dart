@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../l10n/app_localizations.dart';
 import '/domain/blocs.dart';
 
 class City {
@@ -170,7 +169,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  AppLocalizations.of(context)!.addAttachment,
+                  'Add Attachment',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -206,7 +205,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
               Text(
                 _attachedFile != null
                     ? 'File attached: ${_attachedFile!.path.split('/').last}'
-                    : AppLocalizations.of(context)!.addAttachmentOptional,
+                    : 'Add an attachment (optional)',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w500,
                   color: _attachedFile != null
@@ -218,7 +217,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
               if (_attachedFile == null) ...[
                 const SizedBox(height: 4),
                 Text(
-                  AppLocalizations.of(context)!.attachmentTypes,
+                  'Images, PDFs, and documents',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey.shade600,
                   ),
@@ -350,7 +349,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
                 Icon(Icons.send, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.submitAnonymously,
+                  'Submit Anonymously',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -392,7 +391,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              AppLocalizations.of(context)!.privacyNotice,
+              'Your report is completely anonymous and secure. No personal information is collected.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
               ),
@@ -483,7 +482,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    AppLocalizations.of(context)!.helpPrivacy,
+                    'Help & Privacy',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -492,20 +491,20 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
               ),
               const SizedBox(height: 24),
               _buildHelpSection(
-                AppLocalizations.of(context)!.completeAnonymity,
-                AppLocalizations.of(context)!.anonymityDescription,
+                'Complete Anonymity',
+                'Your identity is never recorded or shared with anyone.',
                 Icons.security,
               ),
               const SizedBox(height: 16),
               _buildHelpSection(
-                AppLocalizations.of(context)!.whatToInclude,
-                AppLocalizations.of(context)!.includeDescription,
+                'What to Include',
+                'Provide specific details, location, and evidence if available.',
                 Icons.checklist,
               ),
               const SizedBox(height: 16),
               _buildHelpSection(
-                AppLocalizations.of(context)!.reportProcess,
-                AppLocalizations.of(context)!.processDescription,
+                'Report Process',
+                'Reports are reviewed by moderators and made public when verified.',
                 Icons.assignment_outlined,
               ),
               const SizedBox(height: 24),
@@ -514,7 +513,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.gotIt),
+                    child: Text('Got it'),
                   ),
                 ],
               ),
@@ -741,7 +740,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
           ),
           const SizedBox(height: 24),
           Text(
-            AppLocalizations.of(context)!.anonymous,
+            'Anonymous Report',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.onSurface,
@@ -749,7 +748,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.anonymousDescription,
+            'Report civic issues anonymously and help improve your community',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
@@ -764,8 +763,8 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
     return TextFormField(
       controller: _titleController,
       decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.reportTitle,
-        hintText: AppLocalizations.of(context)!.briefTitle,
+        labelText: 'Report Title',
+        hintText: 'Brief title for your report',
         prefixIcon: Container(
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(8),
@@ -817,8 +816,8 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
       decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.category,
-        hintText: AppLocalizations.of(context)!.selectCategory,
+        labelText: 'Category',
+        hintText: 'Select a category',
         prefixIcon: Container(
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(8),
@@ -880,8 +879,8 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
           TextFormField(
             controller: _locationController,
             decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.location,
-              hintText: _isLoadingCities ? 'Loading cities...' : AppLocalizations.of(context)!.searchCity,
+              labelText: 'Location',
+              hintText: _isLoadingCities ? 'Loading cities...' : 'Search for a city',
               prefixIcon: Container(
                 margin: const EdgeInsets.all(12),
                 padding: const EdgeInsets.all(8),
@@ -1005,8 +1004,8 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
       maxLines: 5,
       maxLength: 2000,
       decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.descriptionOptional,
-        hintText: AppLocalizations.of(context)!.detailedInfo,
+        labelText: 'Description (Optional)',
+        hintText: 'Provide detailed information about the issue',
         alignLabelWithHint: true,
         border: UnderlineInputBorder(
           borderSide: BorderSide(
@@ -1082,7 +1081,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
             Text(
               _attachedFile != null
                   ? 'File attached: ${_attachedFile!.path.split('/').last}'
-                  : AppLocalizations.of(context)!.addAttachmentOptional,
+                  : 'Add an attachment (optional)',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: _attachedFile != null
@@ -1094,7 +1093,7 @@ class _AnonymousReportFormScreenState extends State<AnonymousReportFormScreen>
             if (_attachedFile == null) ...[
               const SizedBox(height: 4),
               Text(
-                AppLocalizations.of(context)!.attachmentTypes,
+                'Images, PDFs, and documents',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.grey.shade600,
                 ),
