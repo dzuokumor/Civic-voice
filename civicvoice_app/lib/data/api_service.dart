@@ -1,5 +1,3 @@
-// lib/data/api_service.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -8,7 +6,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'http://10.0.2.2:5000';
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   static final http.Client _client = http.Client();
@@ -235,6 +233,30 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> register({
+    required String email,
+    required String password,
+    required String userType,
+    String? organization,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await _client.post(
+        Uri.parse('$baseUrl/api/auth/register'),
+        headers: headers,
+        body: json.encode({
+          'email': email,
+          'password': password,
+          'user_type': userType,
+          if (organization != null) 'organization': organization,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw ApiException(message: 'Registration failed: $e');
+    }
+  }
 
   static Future<Map<String, dynamic>> purchaseData({
     Map<String, dynamic>? filters,
@@ -282,7 +304,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/api/data/download/$downloadToken'),
         headers: headers,
-      ).timeout(const Duration(seconds: 60)); // Longer timeout for downloads
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         return response.bodyBytes;
@@ -310,6 +332,22 @@ class ApiService {
       return List<String>.from(data['categories']);
     } catch (e) {
       throw ApiException(message: 'Failed to load categories: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getReportDetails({
+    required String reportId,
+  }) async {
+    try {
+      final headers = await _getHeaders(includeAuth: true);
+      final response = await _client.get(
+        Uri.parse('$baseUrl/api/moderator/reports/$reportId'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 30));
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw ApiException(message: 'Failed to load report details: $e');
     }
   }
 
@@ -351,7 +389,6 @@ class ApiService {
   }
 }
 
-// Custom Exception Class
 class ApiException implements Exception {
   final String message;
   final int? statusCode;

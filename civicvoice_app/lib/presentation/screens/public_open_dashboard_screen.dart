@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/blocs.dart';
+import '../widgets/main_navigation.dart';
 
 class PublicOpenDashboardScreen extends StatefulWidget {
   const PublicOpenDashboardScreen({super.key});
@@ -59,122 +60,101 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Public Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadReports,
-          ),
-          if (selectedCategory != null || selectedDateRange != null)
+    return MainNavigation(
+      currentIndex: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Public Reports'),
+          automaticallyImplyLeading: false,
+          actions: [
             IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: _clearFilters,
+              icon: const Icon(Icons.refresh),
+              onPressed: _loadReports,
             ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Verified Reports',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+            if (selectedCategory != null || selectedDateRange != null)
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: _clearFilters,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Browse publicly available verified reports',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  FilterChip(
-                    label: Text(selectedCategory ?? 'All Categories'),
-                    selected: selectedCategory != null,
-                    onSelected: (selected) {
-                      _showCategoryFilter();
-                    },
-                    avatar: const Icon(Icons.category, size: 16),
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(
-                        selectedDateRange == null
-                            ? 'All Dates'
-                            : '${selectedDateRange!.start.month}/${selectedDateRange!.start.day} - ${selectedDateRange!.end.month}/${selectedDateRange!.end.day}'
-                    ),
-                    selected: selectedDateRange != null,
-                    onSelected: (selected) => _pickDateRange(),
-                    avatar: const Icon(Icons.date_range, size: 16),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: BlocBuilder<ReportBloc, ReportState>(
-                builder: (context, state) {
-                  if (state is ReportLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is PublicReportsLoaded) {
-                    if (state.reports.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: () async => _loadReports(),
-                      child: ListView.builder(
-                        itemCount: state.reports.length,
-                        itemBuilder: (context, index) {
-                          final report = state.reports[index];
-                          return _buildReportCard(report);
-                        },
-                      ),
-                    );
-                  } else if (state is ReportFailure) {
-                    return _buildErrorState(state.message);
-                  }
-
-                  return _buildEmptyState();
-                },
-              ),
-            ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.report), label: 'Report'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, '/home');
-              break;
-            case 1:
-              Navigator.pushReplacementNamed(context, '/report');
-              break;
-            case 2:
-              Navigator.pushReplacementNamed(context, '/history');
-              break;
-            case 3:
-              break;
-          }
-        },
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Verified Reports',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Browse publicly available verified reports',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    FilterChip(
+                      label: Text(selectedCategory ?? 'All Categories'),
+                      selected: selectedCategory != null,
+                      onSelected: (selected) {
+                        _showCategoryFilter();
+                      },
+                      avatar: const Icon(Icons.category, size: 16),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: Text(
+                          selectedDateRange == null
+                              ? 'All Dates'
+                              : '${selectedDateRange!.start.month}/${selectedDateRange!.start.day} - ${selectedDateRange!.end.month}/${selectedDateRange!.end.day}'
+                      ),
+                      selected: selectedDateRange != null,
+                      onSelected: (selected) => _pickDateRange(),
+                      avatar: const Icon(Icons.date_range, size: 16),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: BlocBuilder<ReportBloc, ReportState>(
+                  builder: (context, state) {
+                    if (state is ReportLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is PublicReportsLoaded) {
+                      if (state.reports.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      return RefreshIndicator(
+                        onRefresh: () async => _loadReports(),
+                        child: ListView.builder(
+                          itemCount: state.reports.length,
+                          itemBuilder: (context, index) {
+                            final report = state.reports[index];
+                            return _buildReportCard(report);
+                          },
+                        ),
+                      );
+                    } else if (state is ReportFailure) {
+                      return _buildErrorState(state.message);
+                    }
+
+                    return _buildEmptyState();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -185,11 +165,16 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _showReportDetails(report),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -206,42 +191,64 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(
-                    Icons.verified,
-                    color: Colors.green,
-                    size: 20,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.verified,
+                          color: Colors.green.shade700,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Verified',
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 report['description'] ?? 'No description available',
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontSize: 14,
+                  height: 1.4,
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 12),
-              Row(
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   _buildInfoChip(
                     _formatCategory(report['category']),
                     Icons.category,
-                    Colors.blue,
+                    Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
                   _buildInfoChip(
                     timeAgo,
                     Icons.access_time,
-                    Colors.grey,
+                    Colors.grey.shade600,
                   ),
-                  const SizedBox(width: 8),
                   _buildInfoChip(
                     report['language'].toString().toUpperCase(),
                     Icons.language,
-                    Colors.orange,
+                    Colors.orange.shade600,
                   ),
                 ],
               ),
@@ -254,7 +261,7 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
 
   Widget _buildInfoChip(String label, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -262,14 +269,14 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               color: color,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -352,19 +359,35 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
   void _showCategoryFilter() {
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Select Category',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                const Text(
+                  'Select Category',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            ...['corruption', 'infrastructure', 'healthcare', 'education', 'environment', 'other']
+            ...['corruption', 'infrastructure', 'healthcare', 'education', 'environment', 'public_safety', 'transportation', 'housing', 'employment', 'other']
                 .map((category) => ListTile(
+              leading: Icon(
+                _getCategoryIcon(category),
+                color: Theme.of(context).colorScheme.primary,
+              ),
               title: Text(_formatCategory(category)),
               onTap: () {
                 setState(() => selectedCategory = category);
@@ -373,6 +396,10 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
               },
             )),
             ListTile(
+              leading: Icon(
+                Icons.clear_all,
+                color: Colors.grey.shade600,
+              ),
               title: const Text('All Categories'),
               onTap: () {
                 setState(() => selectedCategory = null);
@@ -386,10 +413,38 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
     );
   }
 
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'corruption':
+        return Icons.gavel;
+      case 'infrastructure':
+        return Icons.construction;
+      case 'healthcare':
+        return Icons.local_hospital;
+      case 'education':
+        return Icons.school;
+      case 'environment':
+        return Icons.eco;
+      case 'public_safety':
+        return Icons.security;
+      case 'transportation':
+        return Icons.directions_bus;
+      case 'housing':
+        return Icons.home;
+      case 'employment':
+        return Icons.work;
+      default:
+        return Icons.report_problem;
+    }
+  }
+
   void _showReportDetails(Map<String, dynamic> report) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
         padding: const EdgeInsets.all(20),
@@ -456,7 +511,7 @@ class _PublicOpenDashboardScreenState extends State<PublicOpenDashboardScreen> {
                     const SizedBox(height: 8),
                     Text(
                       report['description'] ?? 'No description provided',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14, height: 1.5),
                     ),
                   ],
                 ),

@@ -4,7 +4,6 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/api_service.dart';
 
-
 abstract class AuthEvent {}
 
 class LoginEvent extends AuthEvent {
@@ -24,7 +23,20 @@ class RegisterResearcherEvent extends AuthEvent {
   RegisterResearcherEvent(this.email, this.password, this.organization);
 }
 
-// Report Events
+class SignupEvent extends AuthEvent {
+  final String email;
+  final String password;
+  final String? organization;
+  final String userType;
+
+  SignupEvent({
+    required this.email,
+    required this.password,
+    this.organization,
+    required this.userType,
+  });
+}
+
 abstract class ReportEvent {}
 
 class SubmitReportEvent extends ReportEvent {
@@ -93,7 +105,6 @@ class LoadPublicReportsEvent extends ReportEvent {
 
 class LoadCategoriesEvent extends ReportEvent {}
 
-// Language Events
 abstract class LanguageEvent {}
 
 class ChangeLanguageEvent extends LanguageEvent {
@@ -103,7 +114,6 @@ class ChangeLanguageEvent extends LanguageEvent {
 
 class LoadLanguageEvent extends LanguageEvent {}
 
-// Data Purchase Events
 abstract class DataPurchaseEvent {}
 
 class InitiatePurchaseEvent extends DataPurchaseEvent {
@@ -121,26 +131,48 @@ class DownloadDataEvent extends DataPurchaseEvent {
   DownloadDataEvent(this.downloadToken);
 }
 
-// =====================
-// STATES
-// =====================
-
 abstract class AuthState {}
 
 class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
+
 class AuthSuccess extends AuthState {
   final String role;
   final String userId;
   AuthSuccess(this.role, this.userId);
 }
+
+class AuthAuthenticated extends AuthState {
+  final String userId;
+  final String email;
+  final String role;
+
+  AuthAuthenticated({
+    required this.userId,
+    required this.email,
+    required this.role,
+  });
+}
+
+class AuthUnauthenticated extends AuthState {}
+
 class AuthFailure extends AuthState {
   final String message;
   AuthFailure(this.message);
 }
+
+class AuthError extends AuthState {
+  final String message;
+  AuthError(this.message);
+}
+
 class RegistrationSuccess extends AuthState {}
 
-// Report States
+class AuthSignupSuccess extends AuthState {
+  final String message;
+  AuthSignupSuccess(this.message);
+}
+
 abstract class ReportState {}
 
 class ReportInitial extends ReportState {}
@@ -247,16 +279,13 @@ class DataPurchaseFailure extends DataPurchaseState {
   DataPurchaseFailure(this.message);
 }
 
-// =====================
-// BLOCS
-// =====================
-
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
     on<LoginEvent>(_onLogin);
     on<LogoutEvent>(_onLogout);
     on<RegisterResearcherEvent>(_onRegisterResearcher);
+    on<SignupEvent>(_onSignup);
   }
 
   Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
@@ -266,15 +295,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final role = await ApiService.getUserRole();
         final userId = await ApiService.getUserId();
         if (role != null && userId != null) {
-          emit(AuthSuccess(role, userId));
+          emit(AuthAuthenticated(
+            userId: userId,
+            email: '',
+            role: role,
+          ));
         } else {
-          emit(AuthInitial());
+          emit(AuthUnauthenticated());
         }
       } else {
-        emit(AuthInitial());
+        emit(AuthUnauthenticated());
       }
     } catch (e) {
-      emit(AuthInitial());
+      emit(AuthUnauthenticated());
     }
   }
 
@@ -316,6 +349,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthFailure(e.message));
     } catch (e) {
       emit(AuthFailure('Registration failed: $e'));
+    }
+  }
+
+  Future<void> _onSignup(SignupEvent event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await ApiService.register(
+        email: event.email,
+        password: event.password,
+        userType: event.userType,
+        organization: event.organization,
+      );
+
+      emit(AuthSignupSuccess(
+        'Account created successfully! Please check your email for verification.',
+      ));
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('Registration failed: $e'));
     }
   }
 }
@@ -535,4 +588,3 @@ class DataPurchaseBloc extends Bloc<DataPurchaseEvent, DataPurchaseState> {
     }
   }
 }
-

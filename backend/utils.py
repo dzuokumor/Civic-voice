@@ -419,6 +419,79 @@ def cleanup_expired_downloads() -> int:
         logger.error(f"Cleanup error: {str(e)}")
         return 0
 
+def generate_password_reset_token(user_id: str) -> str:
+    if not jwt:
+        raise ImportError("PyJWT is required for token generation")
+
+    from datetime import timedelta
+
+    payload = {
+        'user_id': user_id,
+        'purpose': 'password_reset',
+        'exp': datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+    }
+
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY environment variable is required")
+
+    return jwt.encode(payload, secret_key, algorithm='HS256')
+
+def verify_password_reset_token(token: str) -> Dict[str, Any]:
+    if not jwt:
+        return {'valid': False, 'error': 'JWT library not available'}
+
+    try:
+        secret_key = os.environ.get('SECRET_KEY')
+        if not secret_key:
+            return {'valid': False, 'error': 'Secret key not configured'}
+
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+
+        if payload.get('purpose') != 'password_reset':
+            return {'valid': False, 'error': 'Invalid token purpose'}
+
+        return {'valid': True, 'user_id': payload['user_id']}
+
+    except jwt.ExpiredSignatureError:
+        return {'valid': False, 'error': 'Reset link has expired'}
+    except jwt.InvalidTokenError:
+        return {'valid': False, 'error': 'Invalid reset link'}
+    except Exception as e:
+        logger.error(f"Password reset token verification error: {str(e)}")
+        return {'valid': False, 'error': 'Token verification failed'}
+
+def send_password_reset_email(email: str, reset_token: str) -> bool:
+    try:
+        reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+
+        subject = "Reset Your CivicVoice Password"
+        body = f"""
+        Hello,
+        
+        You requested to reset your password for your CivicVoice account.
+        
+        Click the link below to reset your password:
+        
+        {reset_url}
+        
+        This link will expire in 1 hour.
+        
+        If you didn't request this password reset, please ignore this email.
+        
+        Best regards,
+        The CivicVoice Team
+        """
+
+        logger.info(f"Password reset email would be sent to {email}")
+        logger.info(f"Reset URL: {reset_url}")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {str(e)}")
+        return False
+
 def backup_database() -> Dict[str, Any]:
     try:
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')

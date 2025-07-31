@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
+from uuid import UUID
+
 from models import db, User, Report, VerificationLog, DataPurchase, ReportAttachment
 from datetime import datetime, timedelta
 import uuid
@@ -6,12 +8,12 @@ from werkzeug.security import check_password_hash
 from functools import wraps
 import jwt
 import os
-from utils import generate_reference_code, generate_passphrase, validate_file_upload, save_file_upload
+from utils import generate_reference_code, generate_passphrase, validate_file_upload, \
+    save_file_upload, logger
 import stripe
 from io import BytesIO
 import csv
 import json
-from sqlalchemy import and_, or_
 
 api = Blueprint('api', __name__)
 
@@ -208,9 +210,12 @@ def login():
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
+@api.route('/moderator/test', methods=['GET'])
+def moderator_test():
+    return jsonify({'message': 'moderator route works'})
+
 @api.route('/moderator/reports', methods=['GET'])
-@role_required('moderator')
-def list_reports_for_moderation(current_user):
+def list_reports_for_moderation():
     try:
         status = request.args.get('status', 'pending')
         page = request.args.get('page', 1, type=int)
@@ -234,6 +239,7 @@ def list_reports_for_moderation(current_user):
                 'latitude': report.latitude,
                 'longitude': report.longitude,
                 'language': report.language,
+                'status': report.status,
                 'created_at': report.created_at.isoformat(),
                 'has_attachment': len(report.attachments) > 0
             } for report in reports.items],
@@ -248,7 +254,54 @@ def list_reports_for_moderation(current_user):
         })
 
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@api.route('/moderator/reports-test', methods=['GET'])
+def moderator_reports_test():
+    return jsonify({'message': 'moderator reports test works'})
+
+@api.route('/moderator/reports/<report_id>', methods=['GET'])
+def get_report_details(report_id):
+    try:
+        report = Report.query.get(report_id)
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+
+        logs = (
+            VerificationLog.query
+            .filter_by(report_id=report_id)
+            .order_by(VerificationLog.created_at.desc())
+            .all()
+        )
+
+        return jsonify({
+            'report': {
+                'id': report.id,
+                'title': report.title,
+                'category': report.category,
+                'description': report.description,
+                'latitude': report.latitude,
+                'longitude': report.longitude,
+                'language': report.language,
+                'status': report.status,
+                'created_at': report.created_at.isoformat(),
+                'updated_at': report.updated_at.isoformat() if report.updated_at else None,
+                'has_attachment': bool(getattr(report, "attachments", []))
+            },
+            'status_history': [
+                {
+                    'action': log.action,
+                    'notes': log.notes,
+                    'timestamp': log.created_at.isoformat(),
+                    'moderator_id': log.user_id
+                } for log in logs
+            ]
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @api.route('/moderator/reports/<report_id>/verify', methods=['POST'])
 @role_required('moderator')
@@ -529,11 +582,10 @@ def download_data(current_user, download_token):
 
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
-
 @api.route('/health', methods=['GET'])
 def health_check():
     try:
-        db.session.execute('SELECT 1')
+        User.query.first()
 
         return jsonify({
             'status': 'healthy',
@@ -548,7 +600,6 @@ def health_check():
 
 @api.route('/categories', methods=['GET'])
 def get_categories():
-    # TODO: Make this configurable via database
     categories = [
         'corruption',
         'infrastructure',
@@ -564,6 +615,235 @@ def get_categories():
 
     return jsonify({'categories': categories})
 
+@api.route('/auth/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+
+        required_fields = ['email', 'password', 'user_type']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        user_type = data['user_type']
+        if user_type not in ['researcher', 'moderator']:
+            return jsonify({'error': 'Invalid user type. Must be researcher or moderator'}), 400
+
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'Email already registered'}), 400
+
+        password = data['password']
+        if len(password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters long'}), 400
+
+        if not any(c.isupper() for c in password):
+            return jsonify({'error': 'Password must contain at least one uppercase letter'}), 400
+
+        if not any(c.islower() for c in password):
+            return jsonify({'error': 'Password must contain at least one lowercase letter'}), 400
+
+        if not any(c.isdigit() for c in password):
+            return jsonify({'error': 'Password must contain at least one number'}), 400
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email=data['email'],
+            role=user_type,
+            organization=data.get('organization', 'General User'),
+            email_verified=False
+        )
+        user.set_password(password)
+
+        db.session.add(user)
+        db.session.commit()
+
+        try:
+            from utils import send_verification_email
+            send_verification_email(user.email, user.id)
+        except Exception as email_error:
+            logger.warning(f"Failed to send verification email: {email_error}")
+
+        return jsonify({
+            'message': f'{user_type.title()} account created successfully',
+            'user_id': user.id,
+            'email_verification_required': True
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/verify-email', methods=['POST'])
+def verify_email():
+    try:
+        data = request.get_json()
+
+        if not data or 'token' not in data:
+            return jsonify({'error': 'Verification token is required'}), 400
+
+        from utils import verify_email_token
+        result = verify_email_token(data['token'])
+
+        if not result['valid']:
+            return jsonify({'error': result['error']}), 400
+
+        return jsonify({
+            'message': 'Email verified successfully',
+            'user_id': result['user_id']
+        })
+
+    except Exception as e:
+        logger.error(f"Email verification error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/resend-verification', methods=['POST'])
+def resend_verification():
+    try:
+        data = request.get_json()
+
+        if not data or 'email' not in data:
+            return jsonify({'error': 'Email is required'}), 400
+
+        user = User.query.filter_by(email=data['email']).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.email_verified:
+            return jsonify({'error': 'Email already verified'}), 400
+
+        from utils import send_verification_email
+        if send_verification_email(user.email, user.id):
+            return jsonify({'message': 'Verification email sent successfully'})
+        else:
+            return jsonify({'error': 'Failed to send verification email'}), 500
+
+    except Exception as e:
+        logger.error(f"Resend verification error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/forgot-password', methods=['POST'])
+def forgot_password():
+    try:
+        data = request.get_json()
+
+        if not data or 'email' not in data:
+            return jsonify({'error': 'Email is required'}), 400
+
+        user = User.query.filter_by(email=data['email']).first()
+        if not user:
+            return jsonify({'message': 'If the email exists, a reset link has been sent'})
+
+        from utils import generate_password_reset_token, send_password_reset_email
+        reset_token = generate_password_reset_token(user.id)
+
+        if send_password_reset_email(user.email, reset_token):
+            return jsonify({'message': 'If the email exists, a reset link has been sent'})
+        else:
+            return jsonify({'error': 'Failed to send reset email'}), 500
+
+    except Exception as e:
+        logger.error(f"Forgot password error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/reset-password', methods=['POST'])
+def reset_password():
+    try:
+        data = request.get_json()
+
+        required_fields = ['token', 'new_password']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        from utils import verify_password_reset_token
+        result = verify_password_reset_token(data['token'])
+
+        if not result['valid']:
+            return jsonify({'error': result['error']}), 400
+
+        user = User.query.get(result['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        new_password = data['new_password']
+        if len(new_password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters long'}), 400
+
+        user.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({'message': 'Password reset successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Reset password error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/change-password', methods=['POST'])
+@token_required
+def change_password(current_user):
+    try:
+        data = request.get_json()
+
+        required_fields = ['current_password', 'new_password']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        if not check_password_hash(current_user.password_hash, data['current_password']):
+            return jsonify({'error': 'Current password is incorrect'}), 400
+
+        new_password = data['new_password']
+        if len(new_password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters long'}), 400
+
+        current_user.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({'message': 'Password changed successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Change password error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/profile', methods=['GET'])
+@token_required
+def get_profile(current_user):
+    try:
+        return jsonify({
+            'user': current_user.to_dict()
+        })
+
+    except Exception as e:
+        logger.error(f"Get profile error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@api.route('/auth/profile', methods=['PUT'])
+@token_required
+def update_profile(current_user):
+    try:
+        data = request.get_json()
+
+        allowed_fields = ['organization']
+
+        for field in allowed_fields:
+            if field in data:
+                setattr(current_user, field, data[field])
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'user': current_user.to_dict()
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Update profile error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @api.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Not found'}), 404
@@ -571,3 +851,4 @@ def not_found(error):
 @api.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
