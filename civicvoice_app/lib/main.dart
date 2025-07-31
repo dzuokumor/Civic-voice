@@ -1,3 +1,5 @@
+import 'package:civicvoice_app/presentation/screens/home_screen.dart';
+import 'package:civicvoice_app/presentation/widgets/route_guards.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,13 +14,16 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'domain/blocs.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
+import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/signup_screen.dart';
 import 'presentation/screens/anonymous_report_form_screen.dart';
 import 'presentation/screens/submission_confirmation_screen.dart';
 import 'presentation/screens/track_report_status_screen.dart';
-import 'presentation/screens/moderator_login_screen.dart';
 import 'presentation/screens/moderator_dashboard_screen.dart';
+import 'presentation/screens/moderator_report_detail_screen.dart';
 import 'presentation/screens/public_open_dashboard_screen.dart';
 import 'presentation/screens/settings_screen.dart';
+import 'presentation/screens/data_purchase_screen.dart';
 
 import 'domain/models.dart';
 
@@ -198,12 +203,32 @@ class CivicVoiceApp extends StatelessWidget {
     return {
       AppRoutes.splash: (context) => const SplashScreen(),
       AppRoutes.onboarding: (context) => const OnboardingScreen(),
+      AppRoutes.login: (context) => const LoginScreen(),
+      AppRoutes.signup: (context) => const SignupScreen(),
+      AppRoutes.home: (context) => const HomeScreen(),
       AppRoutes.reportForm: (context) => const AnonymousReportFormScreen(),
+      AppRoutes.submissionConfirmation: (context) => const SubmissionConfirmationScreen(submissionData: {},),
       AppRoutes.trackStatus: (context) => const TrackReportStatusScreen(),
-      AppRoutes.moderatorLogin: (context) => const ModeratorLoginScreen(),
-      AppRoutes.moderatorDashboard: (context) => const ModeratorDashboardScreen(),
       AppRoutes.publicDashboard: (context) => const PublicOpenDashboardScreen(),
       AppRoutes.settings: (context) => const SettingsScreen(),
+
+      AppRoutes.dataPurchase: (context) => RouteGuards.requireResearcher(
+            (context) => const DataPurchaseScreen(),
+      ),
+      AppRoutes.moderatorDashboard: (context) => RouteGuards.requireModerator(
+            (context) => const ModeratorDashboardScreen(),
+      ),
+      AppRoutes.moderatorReportDetail: (context) {
+        final reportId = ModalRoute.of(context)!.settings.arguments as String;
+        return RouteGuards.requireModerator(
+              (context) => ModeratorReportDetailScreen(reportId: reportId),
+        );
+      },
+
+
+      '/report': (context) => const AnonymousReportFormScreen(),
+      '/history': (context) => const TrackReportStatusScreen(),
+      '/dashboard': (context) => const PublicOpenDashboardScreen(),
     };
   }
 
@@ -221,6 +246,13 @@ class CivicVoiceApp extends StatelessWidget {
         return MaterialPageRoute(
           builder: (context) => TrackReportStatusScreen(
             initialCredentials: args,
+          ),
+        );
+      case '/moderatorReportDetail':
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (context) => ModeratorReportDetailScreen(
+            reportId: args?['reportId'] ?? args?['id'] ?? '',
           ),
         );
       default:
@@ -365,6 +397,9 @@ class AppStrings {
 class AppRoutes {
   static const String splash = '/';
   static const String onboarding = '/onboarding';
+  static const String login = '/login';
+  static const String signup = '/signup';
+  static const String home = '/home';
   static const String reportForm = '/anonymousReportForm';
   static const String submissionConfirmation = '/submissionConfirmation';
   static const String trackStatus = '/trackReportStatus';

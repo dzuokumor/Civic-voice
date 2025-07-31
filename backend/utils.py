@@ -2,28 +2,43 @@ import uuid
 import os
 import secrets
 import string
+from typing import Dict, Any, Optional, Union, List
 from werkzeug.utils import secure_filename
-from PIL import Image
 from datetime import datetime
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
 import logging
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+try:
+    from email.mime.text import MimeText
+    from email.mime.multipart import MimeMultipart
+except ImportError:
+    MimeText = None
+    MimeMultipart = None
+
+try:
+    import jwt
+except ImportError:
+    jwt = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 10 * 1024 * 1024
 ALLOWED_EXTENSIONS = {
     'images': {'png', 'jpg', 'jpeg', 'gif', 'webp'},
     'documents': {'pdf', 'doc', 'docx', 'txt'},
     'all': {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx', 'txt'}
 }
 
-def generate_reference_code():
+def generate_reference_code() -> str:
     return ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
-def generate_passphrase():
+def generate_passphrase() -> str:
     words = [
         'apple', 'brave', 'chair', 'dance', 'eagle', 'flame', 'grace', 'heart',
         'ivory', 'jolly', 'kraft', 'lemon', 'music', 'novel', 'ocean', 'peace',
@@ -35,14 +50,14 @@ def generate_passphrase():
 
     return f"{'-'.join(passphrase_words)}-{random_number:03d}"
 
-def allowed_file(filename, file_type='all'):
+def allowed_file(filename: str, file_type: str = 'all') -> bool:
     if '.' not in filename:
         return False
 
     extension = filename.rsplit('.', 1)[1].lower()
     return extension in ALLOWED_EXTENSIONS.get(file_type, ALLOWED_EXTENSIONS['all'])
 
-def validate_file_upload(file):
+def validate_file_upload(file) -> Dict[str, Any]:
     try:
         if not file or not file.filename:
             return {'valid': False, 'error': 'No file provided'}
@@ -60,7 +75,7 @@ def validate_file_upload(file):
         if file_size == 0:
             return {'valid': False, 'error': 'File is empty'}
 
-        if file.content_type and file.content_type.startswith('image/'):
+        if Image and file.content_type and file.content_type.startswith('image/'):
             try:
                 file.seek(0)
                 with Image.open(file) as img:
@@ -75,7 +90,7 @@ def validate_file_upload(file):
         logger.error(f"File validation error: {str(e)}")
         return {'valid': False, 'error': 'File validation failed'}
 
-def save_file_upload(file, report_id):
+def save_file_upload(file, report_id: str) -> Optional[str]:
     try:
         if not os.path.exists(UPLOAD_FOLDER):
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -99,7 +114,7 @@ def save_file_upload(file, report_id):
         logger.error(f"File save error: {str(e)}")
         return None
 
-def delete_file_upload(file_path):
+def delete_file_upload(file_path: str) -> bool:
     try:
         full_path = os.path.join(UPLOAD_FOLDER, file_path)
         if os.path.exists(full_path):
@@ -116,10 +131,10 @@ def delete_file_upload(file_path):
         logger.error(f"File deletion error: {str(e)}")
         return False
 
-def create_moderator_account(email, password, organization=None):
-    from models import db, User
-
+def create_moderator_account(email: str, password: str, organization: Optional[str] = None) -> Dict[str, Any]:
     try:
+        from models import db, User
+
         if User.query.filter_by(email=email).first():
             return {'success': False, 'error': 'Email already exists'}
 
@@ -139,14 +154,18 @@ def create_moderator_account(email, password, organization=None):
         return {'success': True, 'user_id': moderator.id}
 
     except Exception as e:
-        db.session.rollback()
+        try:
+            from models import db
+            db.session.rollback()
+        except (ImportError, AttributeError):
+            pass
         logger.error(f"Error creating moderator account: {str(e)}")
         return {'success': False, 'error': 'Failed to create account'}
 
-def create_researcher_account(email, password, organization):
-    from models import db, User
-
+def create_researcher_account(email: str, password: str, organization: str) -> Dict[str, Any]:
     try:
+        from models import db, User
+
         if User.query.filter_by(email=email).first():
             return {'success': False, 'error': 'Email already exists'}
 
@@ -162,21 +181,22 @@ def create_researcher_account(email, password, organization):
         db.session.add(researcher)
         db.session.commit()
 
-        # TODO: Send verification email
         send_verification_email(researcher.email, researcher.id)
 
         logger.info(f"Researcher account created for {email}")
         return {'success': True, 'user_id': researcher.id}
 
     except Exception as e:
-        db.session.rollback()
+        try:
+            from models import db
+            db.session.rollback()
+        except (ImportError, AttributeError):
+            pass
         logger.error(f"Error creating researcher account: {str(e)}")
         return {'success': False, 'error': 'Failed to create account'}
 
-def send_verification_email(email, user_id):
+def send_verification_email(email: str, user_id: str) -> bool:
     try:
-        # TODO: Implement email verification
-
         verification_token = generate_verification_token(user_id)
         verification_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/verify-email?token={verification_token}"
 
@@ -205,8 +225,10 @@ def send_verification_email(email, user_id):
         logger.error(f"Error sending verification email: {str(e)}")
         return False
 
-def generate_verification_token(user_id):
-    import jwt
+def generate_verification_token(user_id: str) -> str:
+    if not jwt:
+        raise ImportError("PyJWT is required for token generation")
+
     from datetime import timedelta
 
     payload = {
@@ -215,14 +237,24 @@ def generate_verification_token(user_id):
         'exp': datetime.utcnow() + timedelta(hours=24)
     }
 
-    return jwt.encode(payload, os.environ.get('SECRET_KEY'), algorithm='HS256')
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY environment variable is required")
 
-def verify_email_token(token):
-    import jwt
-    from models import db, User
+    return jwt.encode(payload, secret_key, algorithm='HS256')
+
+def verify_email_token(token: str) -> Dict[str, Any]:
+    if not jwt:
+        return {'valid': False, 'error': 'JWT library not available'}
 
     try:
-        payload = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms=['HS256'])
+        from models import db, User
+
+        secret_key = os.environ.get('SECRET_KEY')
+        if not secret_key:
+            return {'valid': False, 'error': 'Secret key not configured'}
+
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
 
         if payload.get('purpose') != 'email_verification':
             return {'valid': False, 'error': 'Invalid token purpose'}
@@ -247,19 +279,19 @@ def verify_email_token(token):
         logger.error(f"Email verification error: {str(e)}")
         return {'valid': False, 'error': 'Verification failed'}
 
-def get_system_setting(key, default_value=None):
-    from models import SystemSettings
-
+def get_system_setting(key: str, default_value: Any = None) -> Any:
     try:
+        from models import SystemSettings
+
         setting = SystemSettings.query.filter_by(key=key).first()
         return setting.value if setting else default_value
     except Exception:
         return default_value
 
-def set_system_setting(key, value, description=None):
-    from models import db, SystemSettings
-
+def set_system_setting(key: str, value: Any, description: Optional[str] = None) -> bool:
     try:
+        from models import db, SystemSettings
+
         setting = SystemSettings.query.filter_by(key=key).first()
 
         if setting:
@@ -280,11 +312,15 @@ def set_system_setting(key, value, description=None):
         return True
 
     except Exception as e:
-        db.session.rollback()
+        try:
+            from models import db
+            db.session.rollback()
+        except (ImportError, AttributeError):
+            pass
         logger.error(f"Error setting system setting: {str(e)}")
         return False
 
-def anonymize_data(data):
+def anonymize_data(data: Union[Dict, List, Any]) -> Union[Dict, List, Any]:
     if isinstance(data, dict):
         sensitive_fields = ['reference_code', 'passphrase', 'email', 'password_hash']
         return {k: v for k, v in data.items() if k not in sensitive_fields}
@@ -293,7 +329,7 @@ def anonymize_data(data):
     else:
         return data
 
-def validate_coordinates(latitude, longitude):
+def validate_coordinates(latitude: Union[str, float], longitude: Union[str, float]) -> Dict[str, Any]:
     try:
         lat = float(latitude)
         lng = float(longitude)
@@ -309,7 +345,7 @@ def validate_coordinates(latitude, longitude):
     except (ValueError, TypeError):
         return {'valid': False, 'error': 'Invalid coordinate format'}
 
-def sanitize_input(text, max_length=None):
+def sanitize_input(text: Optional[str], max_length: Optional[int] = None) -> str:
     if not text:
         return ''
 
@@ -322,11 +358,11 @@ def sanitize_input(text, max_length=None):
 
     return sanitized
 
-def generate_analytics_report():
-    from models import Report, User, DataPurchase
-    from sqlalchemy import func
-
+def generate_analytics_report() -> Optional[Dict[str, Any]]:
     try:
+        from models import Report, User, DataPurchase, db
+        from sqlalchemy import func
+
         total_reports = Report.query.count()
         pending_reports = Report.query.filter_by(status='pending').count()
         verified_reports = Report.query.filter_by(status='verified').count()
@@ -365,10 +401,10 @@ def generate_analytics_report():
         logger.error(f"Analytics generation error: {str(e)}")
         return None
 
-def cleanup_expired_downloads():
-    from models import db, DataPurchase
-
+def cleanup_expired_downloads() -> int:
     try:
+        from models import DataPurchase
+
         expired_purchases = DataPurchase.query.filter(
             DataPurchase.expires_at < datetime.utcnow()
         ).all()
@@ -383,14 +419,81 @@ def cleanup_expired_downloads():
         logger.error(f"Cleanup error: {str(e)}")
         return 0
 
-def backup_database():
-    try:
-        # TODO: Implement database backup functionality
-        # 1. Create a database dump
-        # 2. Compress the dump
-        # 3. Upload to cloud storage
-        # 4. Clean up old backups
+def generate_password_reset_token(user_id: str) -> str:
+    if not jwt:
+        raise ImportError("PyJWT is required for token generation")
 
+    from datetime import timedelta
+
+    payload = {
+        'user_id': user_id,
+        'purpose': 'password_reset',
+        'exp': datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+    }
+
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY environment variable is required")
+
+    return jwt.encode(payload, secret_key, algorithm='HS256')
+
+def verify_password_reset_token(token: str) -> Dict[str, Any]:
+    if not jwt:
+        return {'valid': False, 'error': 'JWT library not available'}
+
+    try:
+        secret_key = os.environ.get('SECRET_KEY')
+        if not secret_key:
+            return {'valid': False, 'error': 'Secret key not configured'}
+
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+
+        if payload.get('purpose') != 'password_reset':
+            return {'valid': False, 'error': 'Invalid token purpose'}
+
+        return {'valid': True, 'user_id': payload['user_id']}
+
+    except jwt.ExpiredSignatureError:
+        return {'valid': False, 'error': 'Reset link has expired'}
+    except jwt.InvalidTokenError:
+        return {'valid': False, 'error': 'Invalid reset link'}
+    except Exception as e:
+        logger.error(f"Password reset token verification error: {str(e)}")
+        return {'valid': False, 'error': 'Token verification failed'}
+
+def send_password_reset_email(email: str, reset_token: str) -> bool:
+    try:
+        reset_url = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
+
+        subject = "Reset Your CivicVoice Password"
+        body = f"""
+        Hello,
+        
+        You requested to reset your password for your CivicVoice account.
+        
+        Click the link below to reset your password:
+        
+        {reset_url}
+        
+        This link will expire in 1 hour.
+        
+        If you didn't request this password reset, please ignore this email.
+        
+        Best regards,
+        The CivicVoice Team
+        """
+
+        logger.info(f"Password reset email would be sent to {email}")
+        logger.info(f"Reset URL: {reset_url}")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {str(e)}")
+        return False
+
+def backup_database() -> Dict[str, Any]:
+    try:
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         backup_filename = f"civicvoice_backup_{timestamp}.sql"
 
